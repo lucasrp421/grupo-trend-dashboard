@@ -224,40 +224,41 @@ function renderDash(d) {
   renderSerie(d.serie);
 }
 
+// Retorna cor da taxa de conversão baseada nas faixas
+function convColor(conv) {
+  if (conv >= 90) return 'var(--blue)';
+  if (conv >= 70) return 'var(--green)';
+  if (conv >= 30) return 'var(--amber)';
+  return 'var(--red)';
+}
+
 function renderLojas(data) {
-  // Ordena por conversão decrescente (ranking)
-  const sorted = [...data].sort((a, b) => b.conv - a.conv);
+  const sorted = [...data].sort((a, b) => {
+    if (a.total === 0 && b.total === 0) return 0;
+    if (a.total === 0) return 1;
+    if (b.total === 0) return -1;
+    return b.conv - a.conv;
+  });
 
   ['dTLojas','mTLojas'].forEach(id => {
-    const tb = document.querySelector('#'+id+' tbody'); if (!tb) return;
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+    const container = wrap.parentElement;
+    container.style.maxHeight = '280px';
+    container.style.overflowY = 'auto';
+    const tb = wrap.querySelector('tbody'); if (!tb) return;
     tb.innerHTML = '';
     sorted.forEach((l, i) => {
-      // Pill: SL = verde, HAV = vermelho
       const pill = l.marca === 'Santa Lolla'
         ? '<span class="pill pill-sl">SL</span>'
         : '<span class="pill pill-hv">Hav</span>';
-
-      // Barra de conversão: SL = verde, HAV = vermelho
-      const barColor = l.marca === 'Santa Lolla' ? 'var(--green)' : 'var(--red)';
-
-      // Medalha para top 3
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
-
-      tb.innerHTML += `<tr>
-        <td title="${l.nome}">
-          <span style="font-size:11px;margin-right:5px;color:var(--text3)">${medal}</span>
-          ${l.nome.replace('Santa Lolla ','').replace('Havaianas ','')}
-        </td>
-        <td>${l.total}</td>
-        <td>${l.sim}</td>
-        <td>
-          <div class="bar-wrap">
-            <div class="bar-bg">
-              <div class="bar-fill" style="width:${l.conv}%;background:${barColor}"></div>
-            </div>
-            <span class="pct">${l.conv}%</span>
-          </div>
-        </td>
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span style="color:var(--text3);font-size:11px">${i+1}</span>`;
+      const cc = l.total === 0 ? 'var(--text3)' : convColor(l.conv);
+      const op = l.total === 0 ? 'opacity:.4' : '';
+      tb.innerHTML += `<tr style="${op}">
+        <td title="${l.nome}"><span style="margin-right:5px">${medal}</span>${l.nome.replace('Santa Lolla ','').replace('Havaianas ','')}</td>
+        <td>${l.total}</td><td>${l.sim}</td>
+        <td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${l.conv}%;background:${cc}"></div></div><span class="pct" style="color:${cc};font-weight:600">${l.total > 0 ? l.conv+'%' : '—'}</span></div></td>
         <td>${pill}</td>
       </tr>`;
     });
@@ -284,7 +285,27 @@ function renderRanking(data, filtro, pre) {
   const lista = filtro === 'todas' ? data : data.filter(v => v.marca === filtro);
   const el = $(pre==='d' ? 'dRank' : 'mRank'); if (!el) return;
   if (!lista.length) { el.innerHTML = '<div class="empty">Nenhuma vendedora</div>'; return; }
-  el.innerHTML = lista.slice(0,10).map((v,i) => `<div class="rank-item"><span class="rn ${i<3?'gold':''}">${i+1}</span><div class="ri"><div class="ri-name">${v.nome}</div><div class="ri-loja">${v.loja}</div></div><div class="rr"><div class="rr-sim">${v.sim} vendas</div><div class="rr-conv">${v.conv}% conv.</div></div></div>`).join('');
+
+  // Scroll após 10 itens
+  el.style.maxHeight = '520px';
+  el.style.overflowY = 'auto';
+  el.style.paddingRight = '4px';
+
+  el.innerHTML = lista.map((v,i) => {
+    const cc = convColor(v.conv);
+    const top = i < 10 ? '' : 'display:block';
+    return `<div class="rank-item" style="${top}">
+      <span class="rn ${i<3?'gold':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span>
+      <div class="ri">
+        <div class="ri-name">${v.nome}</div>
+        <div class="ri-loja">${v.loja}</div>
+      </div>
+      <div class="rr">
+        <div class="rr-sim">${v.sim} vendas</div>
+        <div class="rr-conv" style="color:${cc}">${v.conv}% conv.</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // =============================================
