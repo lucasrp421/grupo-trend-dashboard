@@ -225,12 +225,41 @@ function renderDash(d) {
 }
 
 function renderLojas(data) {
+  // Ordena por conversão decrescente (ranking)
+  const sorted = [...data].sort((a, b) => b.conv - a.conv);
+
   ['dTLojas','mTLojas'].forEach(id => {
     const tb = document.querySelector('#'+id+' tbody'); if (!tb) return;
     tb.innerHTML = '';
-    data.forEach(l => {
-      const pill = l.marca==='Santa Lolla' ? '<span class="pill pill-sl">SL</span>' : '<span class="pill pill-hv">Hav</span>';
-      tb.innerHTML += `<tr><td title="${l.nome}">${l.nome.replace('Santa Lolla ','').replace('Havaianas ','')}</td><td>${l.total}</td><td>${l.sim}</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${l.conv}%"></div></div><span class="pct">${l.conv}%</span></div></td><td>${pill}</td></tr>`;
+    sorted.forEach((l, i) => {
+      // Pill: SL = verde, HAV = vermelho
+      const pill = l.marca === 'Santa Lolla'
+        ? '<span class="pill pill-sl">SL</span>'
+        : '<span class="pill pill-hv">Hav</span>';
+
+      // Barra de conversão: SL = verde, HAV = vermelho
+      const barColor = l.marca === 'Santa Lolla' ? 'var(--green)' : 'var(--red)';
+
+      // Medalha para top 3
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+
+      tb.innerHTML += `<tr>
+        <td title="${l.nome}">
+          <span style="font-size:11px;margin-right:5px;color:var(--text3)">${medal}</span>
+          ${l.nome.replace('Santa Lolla ','').replace('Havaianas ','')}
+        </td>
+        <td>${l.total}</td>
+        <td>${l.sim}</td>
+        <td>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-fill" style="width:${l.conv}%;background:${barColor}"></div>
+            </div>
+            <span class="pct">${l.conv}%</span>
+          </div>
+        </td>
+        <td>${pill}</td>
+      </tr>`;
     });
   });
 }
