@@ -79,6 +79,12 @@
     <div class="d-grid3">
       <div class="card">
         <div class="card-head"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Desempenho por loja</div>
+        <div class="conv-legend">
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--blue)"></span>≥90% Excelente</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--green)"></span>≥70% Ótimo</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--amber)"></span>≥30% Regular</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--red)"></span>&lt;30% Crítico</span>
+        </div>
         <table class="tbl" id="dTLojas"><thead><tr><th style="width:36%">Loja</th><th style="width:10%">Total</th><th style="width:10%">SIM</th><th style="width:30%">Conversão</th><th style="width:14%">Marca</th></tr></thead><tbody></tbody></table>
       </div>
       <div class="card"><div class="card-head"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>Motivos de não compra</div><div id="dMList"></div></div>
@@ -155,7 +161,13 @@
       <div class="m-page" id="pg-lojas">
         <div class="card sec-gap"><div class="card-head"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Conversão por marca</div><div style="position:relative;height:180px"><canvas id="mCMarca"></canvas></div></div>
         <div class="card"><div class="card-head"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Desempenho por loja</div>
-          <table class="tbl" id="mTLojas"><thead><tr><th style="width:35%">Loja</th><th style="width:12%">Tot.</th><th style="width:12%">SIM</th><th style="width:27%">Conv.</th><th style="width:14%"></th></tr></thead><tbody></tbody></table>
+          <div class="conv-legend" style="font-size:9px">
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--blue)"></span>≥90% Excelente</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--green)"></span>≥70% Ótimo</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--amber)"></span>≥30% Regular</span>
+          <span class="conv-legend-item"><span class="conv-legend-dot" style="background:var(--red)"></span>&lt;30% Crítico</span>
+        </div>
+        <table class="tbl" id="mTLojas"><thead><tr><th style="width:35%">Loja</th><th style="width:12%">Tot.</th><th style="width:12%">SIM</th><th style="width:27%">Conv.</th><th style="width:14%"></th></tr></thead><tbody></tbody></table>
         </div>
       </div>
 
