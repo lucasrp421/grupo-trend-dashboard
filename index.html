@@ -31,6 +31,10 @@
       </div>
       <div class="d-top-r">
         <div class="d-status"><span class="s-dot" id="dDot"></span><span id="dTxt">carregando...</span></div>
+        <button onclick="openReportModal()" style="display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:36px;border-radius:10px;background:#1c1c22;color:#eeeef4;border:1px solid #36363f;font-size:12px;cursor:pointer;margin-right:4px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Relatório
+        </button>
         <button class="ref-btn" onclick="carregar()">
           <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>
           Atualizar
@@ -108,7 +112,10 @@
       </div>
       <div class="m-header-r">
         <div class="m-status"><span class="s-dot" id="mDot"></span><span id="mTxt">carregando</span></div>
-        <button class="m-upd-btn" onclick="carregar()">
+        <button onclick="openReportModal()" style="width:40px;height:40px;border-radius:12px;background:#1c1c22;border:1px solid #36363f;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8888a0" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      </button>
+      <button class="m-upd-btn" onclick="carregar()">
           <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>
         </button>
       </div>
@@ -208,5 +215,52 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="app.js"></script>
+
+<!-- MODAL GERAR RELATÓRIO -->
+<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#141418;border:1px solid #28282f;border-radius:16px;padding:24px;width:100%;max-width:440px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:600;color:#eeeef4">📄 Gerar Relatório PDF</div>
+      <button onclick="closeReportModal()" style="background:none;border:none;color:#8888a0;font-size:20px;cursor:pointer">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10px;color:#4a4a60;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Data início</div>
+        <input type="date" id="rpDI" style="height:44px;border:1px solid #36363f;border-radius:10px;padding:0 12px;font-size:14px;background:#1c1c22;color:#eeeef4;width:100%;outline:none"/>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#4a4a60;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Data fim</div>
+        <input type="date" id="rpDF" style="height:44px;border:1px solid #36363f;border-radius:10px;padding:0 12px;font-size:14px;background:#1c1c22;color:#eeeef4;width:100%;outline:none"/>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#4a4a60;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Marca</div>
+        <select id="rpMarca" style="height:44px;border:1px solid #36363f;border-radius:10px;padding:0 12px;font-size:14px;background:#1c1c22;color:#eeeef4;width:100%;outline:none;-webkit-appearance:none">
+          <option value="">Todas as marcas</option><option>Santa Lolla</option><option>Havaianas</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#4a4a60;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Loja</div>
+        <select id="rpLoja" style="height:44px;border:1px solid #36363f;border-radius:10px;padding:0 12px;font-size:14px;background:#1c1c22;color:#eeeef4;width:100%;outline:none;-webkit-appearance:none">
+          <option value="">Todas as lojas</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <div style="font-size:10px;color:#4a4a60;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Vendedora</div>
+        <select id="rpVend" style="height:44px;border:1px solid #36363f;border-radius:10px;padding:0 12px;font-size:14px;background:#1c1c22;color:#eeeef4;width:100%;outline:none;-webkit-appearance:none">
+          <option value="">Todas</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#4a4a60;margin-bottom:16px">O relatório será aberto em nova aba. Use Ctrl+P ou o botão de impressão para salvar como PDF.</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="gerarPDF()" style="flex:1;height:48px;border-radius:12px;background:#5b9cf6;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Gerar PDF
+      </button>
+      <button onclick="closeReportModal()" style="height:48px;padding:0 20px;border-radius:12px;background:#1c1c22;color:#8888a0;border:1px solid #36363f;font-size:14px;cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
