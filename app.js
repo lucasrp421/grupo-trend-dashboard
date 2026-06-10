@@ -348,3 +348,79 @@ window.addEventListener('load', () => {
   initLayout();
   carregar();
 });
+
+// =============================================
+// RELATÓRIO PDF
+// =============================================
+
+function openReportModal() {
+  const modal = $('reportModal');
+  modal.style.display = 'flex';
+
+  // Pré-preenche com os filtros ativos do desktop ou mobile
+  const isMobile = window.innerWidth < 768;
+  const pre = isMobile ? 'm' : 'd';
+  const dI = $(pre+'DI')?.value, dF = $(pre+'DF')?.value;
+  const marca = $(pre+'Marca')?.value, loja = $(pre+'Loja')?.value, vend = $(pre+'Vend')?.value;
+
+  if (dI) $('rpDI').value = dI;
+  if (dF) $('rpDF').value = dF;
+  if (marca) $('rpMarca').value = marca;
+
+  // Popular lojas e vendedoras no modal
+  const rpLoja = $('rpLoja'), rpVend = $('rpVend');
+  if (rpLoja.options.length <= 1 && DADOS?.listas) {
+    DADOS.listas.lojas.forEach(l => {
+      const o = document.createElement('option'); o.value = l; o.textContent = l; rpLoja.appendChild(o);
+    });
+    DADOS.listas.vendedoras.forEach(v => {
+      const o = document.createElement('option'); o.value = v; o.textContent = v; rpVend.appendChild(o);
+    });
+  }
+  if (loja) $('rpLoja').value = loja;
+  if (vend) $('rpVend').value = vend;
+}
+
+function closeReportModal() {
+  $('reportModal').style.display = 'none';
+}
+
+// Fecha modal ao clicar fora
+$('reportModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeReportModal();
+});
+
+async function gerarPDF() {
+  const dI = $('rpDI').value, dF = $('rpDF').value;
+  const marca = $('rpMarca').value, loja = $('rpLoja').value, vend = $('rpVend').value;
+
+  const filtros = {};
+  if (dI) filtros.dataInicio = toBR(dI);
+  if (dF) filtros.dataFim    = toBR(dF);
+  if (marca) filtros.marcas    = [marca];
+  if (loja)  filtros.lojas     = [loja];
+  if (vend)  filtros.vendedora = vend;
+
+  // Botão de loading
+  const btn = document.querySelector('#reportModal button[onclick="gerarPDF()"]');
+  const btnOriginal = btn.innerHTML;
+  btn.innerHTML = '<span style="opacity:.7">Buscando dados...</span>';
+  btn.disabled = true;
+
+  try {
+    const dados = await fetchDados(filtros);
+    const geradoEm = new Date().toLocaleString('pt-BR');
+
+    // Salva no sessionStorage para o report.html ler
+    sessionStorage.setItem('reportData', JSON.stringify({ dados, filtros, geradoEm }));
+
+    // Abre nova aba com o relatório
+    window.open('report.html', '_blank');
+    closeReportModal();
+  } catch(e) {
+    alert('Erro ao buscar dados. Tente novamente.');
+  } finally {
+    btn.innerHTML = btnOriginal;
+    btn.disabled = false;
+  }
+}
