@@ -350,14 +350,16 @@ window.addEventListener('load', () => {
 });
 
 // =============================================
-// RELATÓRIO PDF
+// RELATÓRIO PDF — usa dados já carregados na dash
 // =============================================
 
 function openReportModal() {
+  if (!DADOS) { alert('Aguarde os dados carregarem primeiro.'); return; }
+
   const modal = $('reportModal');
   modal.style.display = 'flex';
 
-  // Pré-preenche com os filtros ativos do desktop ou mobile
+  // Pré-preenche com os filtros ativos
   const isMobile = window.innerWidth < 768;
   const pre = isMobile ? 'm' : 'd';
   const dI = $(pre+'DI')?.value, dF = $(pre+'DF')?.value;
@@ -367,7 +369,7 @@ function openReportModal() {
   if (dF) $('rpDF').value = dF;
   if (marca) $('rpMarca').value = marca;
 
-  // Popular lojas e vendedoras no modal
+  // Popular lojas e vendedoras — só uma vez
   const rpLoja = $('rpLoja'), rpVend = $('rpVend');
   if (rpLoja.options.length <= 1 && DADOS?.listas) {
     DADOS.listas.lojas.forEach(l => {
@@ -382,45 +384,56 @@ function openReportModal() {
 }
 
 function closeReportModal() {
-  $('reportModal').style.display = 'none';
+  const modal = $('reportModal');
+  if (modal) modal.style.display = 'none';
+
+  // Garante que o botão volta ao normal sempre
+  const btn = document.getElementById('btnGerarPDF');
+  if (btn) {
+    btn.textContent = 'Gerar PDF';
+    btn.disabled = false;
+  }
 }
 
 // Fecha modal ao clicar fora
-$('reportModal')?.addEventListener('click', function(e) {
-  if (e.target === this) closeReportModal();
+window.addEventListener('click', function(e) {
+  const modal = $('reportModal');
+  if (modal && e.target === modal) closeReportModal();
 });
 
-async function gerarPDF() {
-  const dI = $('rpDI').value, dF = $('rpDF').value;
-  const marca = $('rpMarca').value, loja = $('rpLoja').value, vend = $('rpVend').value;
-
-  const filtros = {};
-  if (dI) filtros.dataInicio = toBR(dI);
-  if (dF) filtros.dataFim    = toBR(dF);
-  if (marca) filtros.marcas    = [marca];
-  if (loja)  filtros.lojas     = [loja];
-  if (vend)  filtros.vendedora = vend;
-
-  // Botão de loading
-  const btn = document.querySelector('#reportModal button[onclick="gerarPDF()"]');
-  const btnOriginal = btn.innerHTML;
-  btn.innerHTML = '<span style="opacity:.7">Buscando dados...</span>';
+function gerarPDF() {
+  const btn = document.getElementById('btnGerarPDF');
+  btn.textContent = 'Preparando...';
   btn.disabled = true;
 
   try {
-    const dados = await fetchDados(filtros);
+    const dI = $('rpDI').value, dF = $('rpDF').value;
+    const marca = $('rpMarca').value, loja = $('rpLoja').value, vend = $('rpVend').value;
+
+    const filtros = {};
+    if (dI) filtros.dataInicio = toBR(dI);
+    if (dF) filtros.dataFim    = toBR(dF);
+    if (marca) filtros.marcas    = [marca];
+    if (loja)  filtros.lojas     = [loja];
+    if (vend)  filtros.vendedora = vend;
+
     const geradoEm = new Date().toLocaleString('pt-BR');
 
-    // Salva no sessionStorage para o report.html ler
-    sessionStorage.setItem('reportData', JSON.stringify({ dados, filtros, geradoEm }));
+    // Usa os dados já na memória — sem nova chamada à API
+    sessionStorage.setItem('reportData', JSON.stringify({
+      dados: DADOS,
+      filtros,
+      geradoEm
+    }));
 
-    // Abre nova aba com o relatório
+    // Abre relatório na nova aba
     window.open('report.html', '_blank');
     closeReportModal();
+
   } catch(e) {
-    alert('Erro ao buscar dados. Tente novamente.');
-  } finally {
-    btn.innerHTML = btnOriginal;
+    console.error('Erro ao gerar PDF:', e);
+    alert('Erro ao gerar relatório. Tente novamente.');
+    btn.textContent = 'Gerar PDF';
     btn.disabled = false;
   }
 }
