@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatório Grupo Trend</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --blue:#1a56a0;--green:#1a7a3c;--red:#b02020;--amber:#8a5a00;
+      --purple:#4a2a9a;--teal:#0a6a50;--text:#1a1a1a;--text2:#555;--text3:#888;
+      --border:#ddd;--bg:#f8f8f8;--bg2:#fff;
+    }
+    body{font-family:'Segoe UI',Arial,sans-serif;color:var(--text);background:#fff;font-size:13px;padding:0;margin:0}
+
+    /* PRINT CONTROLS — só aparecem na tela, some no PDF */
+    .print-controls{background:#1a1a2e;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .print-controls h2{font-size:15px;font-weight:600}
+    .print-controls-r{display:flex;gap:10px;align-items:center}
+    .btn-print{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:8px;background:#5b9cf6;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer}
+    .btn-print svg{width:15px;height:15px;stroke:#fff;stroke-width:2;fill:none}
+    .btn-back{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:8px;background:transparent;color:#aaa;border:1px solid #444;font-size:13px;cursor:pointer;text-decoration:none}
+
+    /* RELATÓRIO */
+    .report{max-width:794px;margin:0 auto;padding:32px 40px;background:#fff}
+
+    /* Cabeçalho */
+    .r-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1a1a2e}
+    .r-logo{display:flex;align-items:center;gap:12px}
+    .r-logo-box{width:40px;height:40px;border-radius:10px;background:#1a1a2e;display:flex;align-items:center;justify-content:center}
+    .r-logo-box svg{width:20px;height:20px;stroke:#5b9cf6;stroke-width:2;fill:none}
+    .r-logo-name{font-size:20px;font-weight:700;color:#1a1a2e}
+    .r-logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+    .r-meta{text-align:right;font-size:11px;color:var(--text3);line-height:1.7}
+    .r-meta strong{color:var(--text);font-size:12px}
+
+    /* Filtros aplicados */
+    .r-filters{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .r-filters-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+    .r-ftag{background:#e8f0fe;color:#1a56a0;font-size:11px;padding:3px 10px;border-radius:100px;font-weight:500}
+
+    /* KPIs */
+    .r-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px}
+    .r-kpi{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;position:relative;overflow:hidden}
+    .r-kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+    .r-kpi.blue::after{background:var(--blue)}.r-kpi.green::after{background:var(--green)}.r-kpi.red::after{background:var(--red)}.r-kpi.amber::after{background:var(--amber)}.r-kpi.purple::after{background:var(--purple)}.r-kpi.teal::after{background:var(--teal)}
+    .r-kpi-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .r-kpi-val{font-size:20px;font-weight:700;line-height:1}
+    .r-kpi-sub{font-size:9px;color:var(--text3);margin-top:4px}
+    .r-kpi.blue .r-kpi-val{color:var(--blue)}.r-kpi.green .r-kpi-val{color:var(--green)}.r-kpi.red .r-kpi-val{color:var(--red)}.r-kpi.amber .r-kpi-val{color:var(--amber)}.r-kpi.purple .r-kpi-val{color:var(--purple)}.r-kpi.teal .r-kpi-val{color:var(--teal)}
+
+    /* Seções */
+    .r-section{margin-bottom:22px}
+    .r-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .r-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* Tabela */
+    .r-tbl{width:100%;border-collapse:collapse;font-size:12px}
+    .r-tbl th{background:#f0f0f0;color:var(--text2);font-weight:600;text-align:left;padding:7px 8px;border:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+    .r-tbl td{padding:8px 8px;border:1px solid var(--border);color:var(--text);vertical-align:middle}
+    .r-tbl tr:nth-child(even) td{background:#fafafa}
+    .bar-wrap{display:flex;align-items:center;gap:6px}
+    .bar-bg{flex:1;height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:3px}
+    .pct{font-size:11px;font-weight:600;min-width:36px;text-align:right}
+    .pill{font-size:9px;padding:2px 7px;border-radius:100px;font-weight:600}
+    .pill-sl{background:#e8f5e9;color:#1a7a3c}
+    .pill-hv{background:#fce8e8;color:#b02020}
+    .medal{font-size:13px}
+
+    /* Ranking vendedoras — grid 2 colunas */
+    .rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .rank-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fafafa}
+    .rn{font-size:11px;font-weight:700;color:var(--text3);width:20px;text-align:center;flex-shrink:0}
+    .rn.gold{color:#c8860a}
+    .ri{flex:1;min-width:0}
+    .ri-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ri-loja{font-size:10px;color:var(--text3)}
+    .rr{text-align:right;flex-shrink:0}
+    .rr-sim{font-size:13px;font-weight:700;color:var(--blue)}
+    .rr-conv{font-size:10px;color:var(--text3)}
+
+    /* Motivos */
+    .motivo-item{margin-bottom:10px}
+    .motivo-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+    .m-bar-bg{height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+    .m-bar-fill{height:100%;border-radius:3px;background:var(--red)}
+    .m-pct{font-size:10px;color:var(--text3);margin-top:2px}
+
+    /* Legenda */
+    .conv-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-size:10px}
+    .conv-legend-item{display:flex;align-items:center;gap:4px;color:var(--text3)}
+    .conv-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+    /* Rodapé */
+    .r-footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+
+    /* PRINT */
+    @media print {
+      .print-controls{display:none!important}
+      .report{padding:20px 24px;max-width:100%}
+      body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+      .r-kpi::after{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .bar-fill,.m-bar-fill,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .rank-item,.r-tbl tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      @page{margin:1cm;size:A4}
+    }
+  </style>
+</head>
+<body>
+
+<div class="print-controls">
+  <h2>📄 Pré-visualização do Relatório</h2>
+  <div class="print-controls-r">
+    <a href="javascript:history.back()" class="btn-back">← Voltar</a>
+    <button class="btn-print" onclick="window.print()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Salvar como PDF / Imprimir
+    </button>
+  </div>
+</div>
+
+<div class="report" id="report">
+  <!-- gerado dinamicamente pelo app.js -->
+</div>
+
+<script>
+function convColor(conv) {
+  if (conv >= 90) return '#1a56a0';
+  if (conv >= 70) return '#1a7a3c';
+  if (conv >= 30) return '#8a5a00';
+  return '#b02020';
+}
+
+function gerarRelatorio() {
+  const raw = sessionStorage.getItem('reportData');
+  if (!raw) {
+    document.getElementById('report').innerHTML = '<div style="padding:40px;text-align:center;color:#888">Nenhum dado encontrado. Volte ao dashboard e clique em "Gerar Relatório".</div>';
+    return;
+  }
+
+  const { dados, filtros, geradoEm } = JSON.parse(raw);
+  const d = dados;
+  const k = d.kpis;
+
+  // Monta filtros aplicados
+  const ftags = [];
+  if (filtros.dataInicio || filtros.dataFim) ftags.push(`${filtros.dataInicio||'início'} → ${filtros.dataFim||'hoje'}`);
+  if (filtros.marcas)    ftags.push(filtros.marcas[0]);
+  if (filtros.lojas)     ftags.push(filtros.lojas[0]);
+  if (filtros.vendedora) ftags.push(filtros.vendedora);
+
+  const filtroPeriodo = (filtros.dataInicio || filtros.dataFim)
+    ? `${filtros.dataInicio||'início'} até ${filtros.dataFim||'hoje'}`
+    : 'Hoje';
+
+  // KPIs de marca
+  const sl = d.porMarca.find(m => m.marca === 'Santa Lolla') || {conv:0,total:0,sim:0};
+  const hv = d.porMarca.find(m => m.marca === 'Havaianas')   || {conv:0,total:0,sim:0};
+
+  // Lojas ordenadas
+  const lojasOrdenadas = [...d.porLoja].sort((a,b) => {
+    if(a.total===0&&b.total===0) return 0;
+    if(a.total===0) return 1;
+    if(b.total===0) return -1;
+    return b.conv - a.conv;
+  });
+
+  // Vendedoras ordenadas
+  const vendOrdenadas = [...d.ranking].sort((a,b) => b.sim - a.sim);
+
+  const html = `
+    <div class="r-header">
+      <div class="r-logo">
+        <div class="r-logo-box">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <div>
+          <div class="r-logo-name">Grupo Trend</div>
+          <div class="r-logo-sub">Relatório de Atendimentos</div>
+        </div>
+      </div>
+      <div class="r-meta">
+        <div><strong>Período:</strong> ${filtroPeriodo}</div>
+        <div><strong>Gerado em:</strong> ${geradoEm}</div>
+        <div><strong>Total de registros:</strong> ${d.meta.totalRegistros}</div>
+      </div>
+    </div>
+
+    ${ftags.length ? `
+    <div class="r-filters">
+      <span class="r-filters-label">Filtros:</span>
+      ${ftags.map(t => `<span class="r-ftag">${t}</span>`).join('')}
+    </div>` : ''}
+
+    <div class="r-kpis">
+      <div class="r-kpi blue"><div class="r-kpi-label">Atendimentos</div><div class="r-kpi-val">${k.total}</div><div class="r-kpi-sub">total</div></div>
+      <div class="r-kpi green"><div class="r-kpi-label">Compraram</div><div class="r-kpi-val">${k.sim}</div><div class="r-kpi-sub">SIM</div></div>
+      <div class="r-kpi red"><div class="r-kpi-label">Não compraram</div><div class="r-kpi-val">${k.nao}</div><div class="r-kpi-sub">NÃO</div></div>
+      <div class="r-kpi amber"><div class="r-kpi-label">Conversão</div><div class="r-kpi-val">${k.conv}%</div><div class="r-kpi-sub">taxa geral</div></div>
+      <div class="r-kpi purple"><div class="r-kpi-label">Santa Lolla</div><div class="r-kpi-val">${sl.conv}%</div><div class="r-kpi-sub">${sl.total} atend.</div></div>
+      <div class="r-kpi teal"><div class="r-kpi-label">Havaianas</div><div class="r-kpi-val">${hv.conv}%</div><div class="r-kpi-sub">${hv.total} atend.</div></div>
+    </div>
+
+    <div class="r-section">
+      <div class="r-section-title">Desempenho por loja</div>
+      <div class="conv-legend">
+        <span class="conv-legend-item"><span class="conv-legend-dot" style="background:#1a56a0"></span>≥90% Excelente</span>
+        <span class="conv-legend-item"><span class="conv-legend-dot" style="background:#1a7a3c"></span>≥70% Ótimo</span>
+        <span class="conv-legend-item"><span class="conv-legend-dot" style="background:#8a5a00"></span>≥30% Regular</span>
+        <span class="conv-legend-item"><span class="conv-legend-dot" style="background:#b02020"></span>&lt;30% Crítico</span>
+      </div>
+      <table class="r-tbl">
+        <thead><tr><th style="width:5%">#</th><th style="width:30%">Loja</th><th style="width:10%">Total</th><th style="width:10%">SIM</th><th style="width:10%">NÃO</th><th style="width:25%">Conversão</th><th style="width:10%">Marca</th></tr></thead>
+        <tbody>
+          ${lojasOrdenadas.map((l,i) => {
+            const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+            const cc = l.total===0 ? '#ccc' : convColor(l.conv);
+            const pill = l.marca==='Santa Lolla' ? '<span class="pill pill-sl">SL</span>' : '<span class="pill pill-hv">Hav</span>';
+            const op = l.total===0 ? 'opacity:.45' : '';
+            return `<tr style="${op}">
+              <td style="text-align:center">${medal}</td>
+              <td>${l.nome}</td>
+              <td style="text-align:center">${l.total}</td>
+              <td style="text-align:center">${l.sim}</td>
+              <td style="text-align:center">${l.nao}</td>
+              <td>
+                <div class="bar-wrap">
+                  <div class="bar-bg"><div class="bar-fill" style="width:${l.conv}%;background:${cc}"></div></div>
+                  <span class="pct" style="color:${cc}">${l.total>0?l.conv+'%':'—'}</span>
+                </div>
+              </td>
+              <td>${pill}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="r-section">
+      <div class="r-section-title">Ranking de vendedoras</div>
+      <div class="rank-grid">
+        ${vendOrdenadas.map((v,i) => {
+          const cc = convColor(v.conv);
+          return `<div class="rank-item">
+            <span class="rn ${i<3?'gold':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span>
+            <div class="ri">
+              <div class="ri-name">${v.nome}</div>
+              <div class="ri-loja">${v.loja.replace('Santa Lolla ','').replace('Havaianas ','')}</div>
+            </div>
+            <div class="rr">
+              <div class="rr-sim">${v.sim} vendas</div>
+              <div class="rr-conv" style="color:${cc}">${v.conv}%</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${d.motivos.length ? `
+    <div class="r-section">
+      <div class="r-section-title">Motivos de não compra</div>
+      ${d.motivos.map(m => `
+        <div class="motivo-item">
+          <div class="motivo-top"><span>${m.motivo}</span><strong>${m.qtd}x — ${m.pct}%</strong></div>
+          <div class="m-bar-bg"><div class="m-bar-fill" style="width:${m.pct}%"></div></div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div class="r-footer">
+      <span>Grupo Trend — Dashboard de Atendimentos</span>
+      <span>Gerado em ${geradoEm}</span>
+    </div>
+  `;
+
+  document.getElementById('report').innerHTML = html;
+  document.title = `Relatório Grupo Trend — ${filtroPeriodo}`;
+}
+
+window.addEventListener('load', gerarRelatorio);
+</script>
+</body>
+</html>
