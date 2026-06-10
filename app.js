@@ -172,21 +172,33 @@ function filtrarLocalmente(filtros) {
 function normalizarRegistros(registros) {
   return registros.map(r => {
     let _date = null, _hora = null, _dayStr = null;
+
+    // 1. Extrai data do campo data
     try {
       const dt = new Date(r.data);
       if (!isNaN(dt)) {
-        _date = dt;
-        _hora = dt.getHours();
+        _date  = dt;
         _dayStr = `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
+        _hora   = dt.getHours(); // fallback: hora da data
       }
     } catch(e) {}
 
-    // Hora separada (coluna HORA = "14:12:00" ou decimal)
-    if (r.hora !== undefined && r.hora !== null) {
+    // 2. Hora da coluna HORA tem prioridade — pode vir de 3 formas:
+    if (r.hora !== undefined && r.hora !== null && r.hora !== '') {
       if (typeof r.hora === 'number') {
-        _hora = Math.floor(r.hora * 24);
-      } else if (typeof r.hora === 'string' && r.hora.includes(':')) {
-        _hora = parseInt(r.hora.split(':')[0]);
+        // Decimal do Sheets: 0.416... = 10h, 0.666... = 16h
+        const h = Math.round(r.hora * 24 * 60) / 60; // em horas decimais
+        _hora = Math.floor(h);
+        // Corrige arredondamento: 0.999... vira 24, tratar como 23
+        if (_hora >= 24) _hora = 23;
+      } else if (typeof r.hora === 'string') {
+        const s = r.hora.trim();
+        if (s.includes(':')) {
+          // "14:12:00" ou "14:12"
+          _hora = parseInt(s.split(':')[0], 10);
+        } else if (!isNaN(s)) {
+          _hora = parseInt(s, 10);
+        }
       }
     }
 
