@@ -313,22 +313,22 @@ function aplicarHoje() {
 async function carregar() {
   setStatus('carregando...', true);
   try {
-    // Busca TODOS os dados de uma vez (sem filtro de data)
     const resposta = await fetchTodos();
-
-    // Salva registros brutos normalizados
     REGISTROS_BRUTOS = normalizarRegistros(resposta.registros || []);
     LISTAS = resposta.listas;
-
-    // Popula selects
     popularSelects(LISTAS);
 
-    // Aplica filtro de hoje por padrão
+    // Reseta TODOS os filtros antes de aplicar hoje
+    ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value=''; });
+    ['dMarca','mMarca','dLoja','mLoja','dVend','mVend'].forEach(id => { const e=$(id); if(e) e.value=''; });
+    const chips = $('dChips'); if(chips) chips.innerHTML='';
+    renderMChips({});
+
+    // Aplica só hoje por padrão
     aplicarHoje();
 
     setStatus(resposta.atualizadoEm || new Date().toLocaleString('pt-BR'), false);
     hideLoading();
-
   } catch(e) {
     console.error(e);
     setStatus('erro ao carregar', false);
