@@ -170,8 +170,13 @@ function filtrarLocalmente(filtros) {
 // NORMALIZA REGISTROS — pré-processa datas/horas
 // =============================================
 function normalizarRegistros(registros) {
+  // DEBUG — remove depois
+  if (registros.length > 0) {
+    console.log('Exemplo registro bruto:', JSON.stringify(registros[0]));
+    console.log('Campo hora:', registros[0].hora, typeof registros[0].hora);
+    console.log('Campo data:', registros[0].data);
+  }
   return registros.map(r => {
-    let _date = null, _hora = null, _dayStr = null;
 
     // 1. Extrai data do campo data
     try {
