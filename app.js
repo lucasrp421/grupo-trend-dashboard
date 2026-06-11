@@ -168,22 +168,38 @@ function filtrarLocalmente(filtros) {
 
 // =============================================
 // NORMALIZA REGISTROS
-// data vem como "11/06/2026", hora como inteiro 0-23
+// data vem como "27/05/2026", hora como "09:50:00"
 // =============================================
 function normalizarRegistros(registros) {
   return registros.map(r => {
     let _date = null, _hora = null, _dayStr = null;
 
-    if (r.data) {
-      // data já vem em "DD/MM/YYYY"
-      _dayStr = r.data;
+    // data vem como "DD/MM/YYYY" direto do Apps Script
+    if (r.data && typeof r.data === 'string' && r.data.includes('/')) {
+      _dayStr = r.data; // ex: "27/05/2026"
       const [d, m, y] = r.data.split('/').map(Number);
-      _date = new Date(y, m - 1, d, 12, 0, 0); // meio-dia evita virada de fuso
+      _date = new Date(y, m - 1, d, 12, 0, 0);
     }
 
-    if (r.hora !== null && r.hora !== undefined && r.hora !== '') {
-      _hora = Number(r.hora);
-      if (isNaN(_hora)) _hora = null;
+    // hora pode vir como:
+    // - inteiro: 14
+    // - string: "09:50:00" ou "9:50:00"
+    // - decimal: 0.416 (legado)
+    const h = r.hora;
+    if (h !== null && h !== undefined && h !== '') {
+      if (typeof h === 'number') {
+        if (h >= 0 && h < 1) {
+          _hora = Math.floor(h * 24); // decimal sheets
+        } else {
+          _hora = Math.floor(h); // inteiro direto
+        }
+      } else if (typeof h === 'string') {
+        if (h.includes(':')) {
+          _hora = parseInt(h.split(':')[0], 10); // "09:50:00" → 9
+        } else {
+          _hora = parseInt(h, 10);
+        }
+      }
     }
 
     return { ...r, _date, _hora, _dayStr };
@@ -282,9 +298,10 @@ function mLimpar() {
 }
 
 function aplicarHoje() {
-  const hj   = toInput(hoje); // "2026-06-11" para o input HTML
-  const hjBR = toBR(hj);     // "11/06/2026" para o filtro
-  ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value = hj; });
+  const hj   = toInput(hoje); // "2026-06-11"
+  const hjBR = toBR(hj);      // "11/06/2026"
+  // Seta início E fim como hoje — mostra só hoje por padrão
+  ['dDI','dDF','mDI','mDF'].forEach(id => { const e = $(id); if (e) e.value = hj; });
   const f = { dataInicio: hjBR, dataFim: hjBR };
   const d = filtrarLocalmente(f);
   if (d) { DADOS = d; renderDash(d); }
