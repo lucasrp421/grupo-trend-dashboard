@@ -168,8 +168,8 @@ function filtrarLocalmente(filtros) {
 
 // =============================================
 // NORMALIZA REGISTROS
-// data pode vir como "27/05/2026" (BR) ou "2026-05-27" (ISO)
-// hora pode vir como "09:50:00", inteiro ou decimal
+// data vem como "27/05/2026" (BR) ou "2026-05-27..." (ISO)
+// hora vem como "09:50:00", inteiro ou decimal
 // =============================================
 function normalizarRegistros(registros) {
   return registros.map(r => {
@@ -180,21 +180,21 @@ function normalizarRegistros(registros) {
       let d, m, y;
 
       if (s.includes('/')) {
-        // Formato BR: "27/05/2026"
+        // Formato BR: "27/05/2026" — parseia manualmente para evitar ambiguidade
         [d, m, y] = s.split('/').map(Number);
-      } else if (s.includes('-') && s.length >= 10) {
-        // Formato ISO: "2026-05-27" ou "2026-05-27T..."
+      } else if (s.includes('-')) {
+        // Formato ISO: "2026-05-27" ou "2026-05-27T09:50:00"
         const part = s.substring(0, 10);
         [y, m, d] = part.split('-').map(Number);
       }
 
-      if (d && m && y) {
-        _date   = new Date(y, m - 1, d, 12, 0, 0);
+      if (d && m && y && !isNaN(d) && !isNaN(m) && !isNaN(y)) {
+        _date   = new Date(y, m - 1, d, 12, 0, 0); // meio-dia evita virada de fuso
         _dayStr = `${pad(d)}/${pad(m)}/${y}`;
       }
     }
 
-    // hora
+    // Hora
     const h = r.hora;
     if (h !== null && h !== undefined && h !== '') {
       if (typeof h === 'number') {
