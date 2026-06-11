@@ -75,13 +75,12 @@ function filtrarLocalmente(filtros) {
   if (dF) dF.setHours(23,59,59);
 
   const filtrados = REGISTROS_BRUTOS.filter(r => {
-    // Data — compara só por _dayStr para evitar problemas de fuso
+    // Data — compara por _date (Date object) sem hora
     if (dI || dF) {
-      if (!r._dayStr) return false;
-      const [rd, rm, ry] = r._dayStr.split('/').map(Number);
-      const rDate = new Date(ry, rm - 1, rd);
-      if (dI) { const di = new Date(dI.getFullYear(), dI.getMonth(), dI.getDate()); if (rDate < di) return false; }
-      if (dF) { const df = new Date(dF.getFullYear(), dF.getMonth(), dF.getDate()); if (rDate > df) return false; }
+      if (!r._date) return false;
+      const rd = new Date(r._date.getFullYear(), r._date.getMonth(), r._date.getDate());
+      if (dI) { const di = new Date(dI.getFullYear(), dI.getMonth(), dI.getDate()); if (rd < di) return false; }
+      if (dF) { const df = new Date(dF.getFullYear(), dF.getMonth(), dF.getDate()); if (rd > df) return false; }
     }
     // Loja
     if (filtros.lojas?.length && !filtros.lojas.includes(r.loja)) return false;
@@ -169,22 +168,22 @@ function filtrarLocalmente(filtros) {
 
 // =============================================
 // NORMALIZA REGISTROS
+// data vem como "11/06/2026", hora como inteiro 0-23
 // =============================================
 function normalizarRegistros(registros) {
   return registros.map(r => {
     let _date = null, _hora = null, _dayStr = null;
 
-    // data vem como "2026-06-11"
     if (r.data) {
-      const [y, m, d] = r.data.split('-').map(Number);
-      // Cria data local sem fuso (meio-dia para evitar virada de dia)
-      _date   = new Date(y, m - 1, d, 12, 0, 0);
-      _dayStr = `${pad(d)}/${pad(m)}/${y}`;
+      // data já vem em "DD/MM/YYYY"
+      _dayStr = r.data;
+      const [d, m, y] = r.data.split('/').map(Number);
+      _date = new Date(y, m - 1, d, 12, 0, 0); // meio-dia evita virada de fuso
     }
 
-    // hora vem como inteiro do backend (ex: 14)
     if (r.hora !== null && r.hora !== undefined && r.hora !== '') {
       _hora = Number(r.hora);
+      if (isNaN(_hora)) _hora = null;
     }
 
     return { ...r, _date, _hora, _dayStr };
@@ -283,9 +282,9 @@ function mLimpar() {
 }
 
 function aplicarHoje() {
-  const hj = toInput(hoje); // "2026-06-11"
-  const hjBR = toBR(hj);    // "11/06/2026"
-  ['dDI','dDF','mDI','mDF'].forEach(id=>{const e=$(id);if(e)e.value=hj;});
+  const hj   = toInput(hoje); // "2026-06-11" para o input HTML
+  const hjBR = toBR(hj);     // "11/06/2026" para o filtro
+  ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value = hj; });
   const f = { dataInicio: hjBR, dataFim: hjBR };
   const d = filtrarLocalmente(f);
   if (d) { DADOS = d; renderDash(d); }
