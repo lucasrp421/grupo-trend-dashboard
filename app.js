@@ -170,40 +170,37 @@ function filtrarLocalmente(filtros) {
 // NORMALIZA REGISTROS — pré-processa datas/horas
 // =============================================
 function normalizarRegistros(registros) {
-  // DEBUG — remove depois
+  console.log('normalizarRegistros chamado, total:', registros.length);
   if (registros.length > 0) {
-    console.log('Exemplo registro bruto:', JSON.stringify(registros[0]));
-    console.log('Campo hora:', registros[0].hora, typeof registros[0].hora);
-    console.log('Campo data:', registros[0].data);
+    console.log('Registro[0]:', JSON.stringify(registros[0]));
   }
+
   return registros.map(r => {
+    let _date = null, _hora = null, _dayStr = null;
 
-    // 1. Extrai data do campo data
+    // 1. Data (vem como ISO string do Apps Script)
     try {
-      const dt = new Date(r.data);
-      if (!isNaN(dt)) {
-        _date  = dt;
-        _dayStr = `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
-        _hora   = dt.getHours(); // fallback: hora da data
-      }
-    } catch(e) {}
-
-    // 2. Hora da coluna HORA tem prioridade — pode vir de 3 formas:
-    if (r.hora !== undefined && r.hora !== null && r.hora !== '') {
-      if (typeof r.hora === 'number') {
-        // Decimal do Sheets: 0.416... = 10h, 0.666... = 16h
-        const h = Math.round(r.hora * 24 * 60) / 60; // em horas decimais
-        _hora = Math.floor(h);
-        // Corrige arredondamento: 0.999... vira 24, tratar como 23
-        if (_hora >= 24) _hora = 23;
-      } else if (typeof r.hora === 'string') {
-        const s = r.hora.trim();
-        if (s.includes(':')) {
-          // "14:12:00" ou "14:12"
-          _hora = parseInt(s.split(':')[0], 10);
-        } else if (!isNaN(s)) {
-          _hora = parseInt(s, 10);
+      if (r.data) {
+        const dt = new Date(r.data);
+        if (!isNaN(dt.getTime())) {
+          _date   = dt;
+          _dayStr = `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
+          _hora   = dt.getHours(); // fallback
         }
+      }
+    } catch(e) { console.warn('Erro data:', r.data, e); }
+
+    // 2. Hora separada tem prioridade
+    if (r.hora !== undefined && r.hora !== null && r.hora !== '') {
+      if (typeof r.hora === 'number' && r.hora >= 0 && r.hora < 1) {
+        // Decimal do Sheets: 0.4166 = 10h, 0.6666 = 16h
+        _hora = Math.floor(r.hora * 24);
+        if (_hora >= 24) _hora = 23;
+      } else if (typeof r.hora === 'string' && r.hora.includes(':')) {
+        _hora = parseInt(r.hora.split(':')[0], 10);
+      } else if (typeof r.hora === 'number' && r.hora >= 1) {
+        // Já é inteiro de hora (caso raro)
+        _hora = Math.floor(r.hora);
       }
     }
 
