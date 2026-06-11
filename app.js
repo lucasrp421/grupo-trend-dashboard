@@ -75,12 +75,13 @@ function filtrarLocalmente(filtros) {
   if (dF) dF.setHours(23,59,59);
 
   const filtrados = REGISTROS_BRUTOS.filter(r => {
-    // Data
+    // Data — compara só por _dayStr para evitar problemas de fuso
     if (dI || dF) {
-      const dt = r._date;
-      if (!dt) return false;
-      if (dI && dt < dI) return false;
-      if (dF && dt > dF) return false;
+      if (!r._dayStr) return false;
+      const [rd, rm, ry] = r._dayStr.split('/').map(Number);
+      const rDate = new Date(ry, rm - 1, rd);
+      if (dI) { const di = new Date(dI.getFullYear(), dI.getMonth(), dI.getDate()); if (rDate < di) return false; }
+      if (dF) { const df = new Date(dF.getFullYear(), dF.getMonth(), dF.getDate()); if (rDate > df) return false; }
     }
     // Loja
     if (filtros.lojas?.length && !filtros.lojas.includes(r.loja)) return false;
@@ -167,24 +168,23 @@ function filtrarLocalmente(filtros) {
 }
 
 // =============================================
-// NORMALIZA REGISTROS — pré-processa datas/horas
+// NORMALIZA REGISTROS
 // =============================================
 function normalizarRegistros(registros) {
   return registros.map(r => {
     let _date = null, _hora = null, _dayStr = null;
 
-    // data vem como "2026-06-11" (só data, sem hora)
+    // data vem como "2026-06-11"
     if (r.data) {
-      const parts = r.data.split('-');
-      if (parts.length === 3) {
-        _date   = new Date(+parts[0], +parts[1]-1, +parts[2]);
-        _dayStr = `${pad(+parts[2])}/${pad(+parts[1])}/${parts[0]}`;
-      }
+      const [y, m, d] = r.data.split('-').map(Number);
+      // Cria data local sem fuso (meio-dia para evitar virada de dia)
+      _date   = new Date(y, m - 1, d, 12, 0, 0);
+      _dayStr = `${pad(d)}/${pad(m)}/${y}`;
     }
 
-    // hora vem como inteiro direto do backend (ex: 14)
-    if (r.hora !== null && r.hora !== undefined) {
-      _hora = r.hora;
+    // hora vem como inteiro do backend (ex: 14)
+    if (r.hora !== null && r.hora !== undefined && r.hora !== '') {
+      _hora = Number(r.hora);
     }
 
     return { ...r, _date, _hora, _dayStr };
@@ -283,10 +283,12 @@ function mLimpar() {
 }
 
 function aplicarHoje() {
-  ['dDI','dDF','mDI','mDF'].forEach(id=>{const e=$(id);if(e)e.value=toInput(hoje);});
-  const f={dataInicio:toBR(toInput(hoje)),dataFim:toBR(toInput(hoje))};
-  const d=filtrarLocalmente(f);
-  if(d){DADOS=d;renderDash(d);}
+  const hj = toInput(hoje); // "2026-06-11"
+  const hjBR = toBR(hj);    // "11/06/2026"
+  ['dDI','dDF','mDI','mDF'].forEach(id=>{const e=$(id);if(e)e.value=hj;});
+  const f = { dataInicio: hjBR, dataFim: hjBR };
+  const d = filtrarLocalmente(f);
+  if (d) { DADOS = d; renderDash(d); }
 }
 
 // =============================================
