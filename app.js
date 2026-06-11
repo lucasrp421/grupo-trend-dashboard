@@ -170,38 +170,21 @@ function filtrarLocalmente(filtros) {
 // NORMALIZA REGISTROS — pré-processa datas/horas
 // =============================================
 function normalizarRegistros(registros) {
-  console.log('normalizarRegistros chamado, total:', registros.length);
-  if (registros.length > 0) {
-    console.log('Registro[0]:', JSON.stringify(registros[0]));
-  }
-
   return registros.map(r => {
     let _date = null, _hora = null, _dayStr = null;
 
-    // 1. Data (vem como ISO string do Apps Script)
-    try {
-      if (r.data) {
-        const dt = new Date(r.data);
-        if (!isNaN(dt.getTime())) {
-          _date   = dt;
-          _dayStr = `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
-          _hora   = dt.getHours(); // fallback
-        }
+    // data vem como "2026-06-11" (só data, sem hora)
+    if (r.data) {
+      const parts = r.data.split('-');
+      if (parts.length === 3) {
+        _date   = new Date(+parts[0], +parts[1]-1, +parts[2]);
+        _dayStr = `${pad(+parts[2])}/${pad(+parts[1])}/${parts[0]}`;
       }
-    } catch(e) { console.warn('Erro data:', r.data, e); }
+    }
 
-    // 2. Hora separada tem prioridade
-    if (r.hora !== undefined && r.hora !== null && r.hora !== '') {
-      if (typeof r.hora === 'number' && r.hora >= 0 && r.hora < 1) {
-        // Decimal do Sheets: 0.4166 = 10h, 0.6666 = 16h
-        _hora = Math.floor(r.hora * 24);
-        if (_hora >= 24) _hora = 23;
-      } else if (typeof r.hora === 'string' && r.hora.includes(':')) {
-        _hora = parseInt(r.hora.split(':')[0], 10);
-      } else if (typeof r.hora === 'number' && r.hora >= 1) {
-        // Já é inteiro de hora (caso raro)
-        _hora = Math.floor(r.hora);
-      }
+    // hora vem como inteiro direto do backend (ex: 14)
+    if (r.hora !== null && r.hora !== undefined) {
+      _hora = r.hora;
     }
 
     return { ...r, _date, _hora, _dayStr };
