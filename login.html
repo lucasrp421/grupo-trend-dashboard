@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#0d0d10"/>
+  <title>Grupo Trend — Login</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0d0d10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#14141a;border:1px solid #2a2a35;border-radius:16px;padding:40px 36px;width:100%;max-width:380px}
+    .logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+    .logo svg{width:32px;height:32px;fill:#5b9cf6}
+    .logo-name{font-size:20px;font-weight:600;color:#eeeef4}
+    .logo-sub{font-size:12px;color:#7070a0;margin-top:2px}
+    h2{font-size:15px;color:#eeeef4;margin-bottom:24px;text-align:center;font-weight:500}
+    .group{margin-bottom:16px}
+    label{display:block;font-size:11px;color:#7070a0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+    select,input[type=password]{width:100%;height:44px;background:#1c1c26;border:1px solid #2a2a35;border-radius:10px;color:#eeeef4;font-size:14px;padding:0 14px;outline:none;transition:border .2s;-webkit-appearance:none}
+    select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237070a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+    select:focus,input:focus{border-color:#5b9cf6}
+    select option{background:#1c1c26;color:#eeeef4}
+    .btn{width:100%;height:44px;background:#5b9cf6;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn:hover{background:#4a8ae0}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{background:#2a2a3a;color:#5a5a7a;cursor:not-allowed}
+    .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error{background:#2a1a1a;border:1px solid #e05c5c44;border-radius:8px;padding:10px 14px;color:#e05c5c;font-size:13px;margin-top:14px;display:none;text-align:center}
+    .footer{text-align:center;margin-top:24px;font-size:11px;color:#3a3a55}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    <div>
+      <div class="logo-name">Grupo Trend</div>
+      <div class="logo-sub">Dashboard de atendimentos</div>
+    </div>
+  </div>
+
+  <h2>Acesso ao sistema</h2>
+
+  <div class="group">
+    <label>Usuário</label>
+    <select id="usuario">
+      <option value="">Selecione...</option>
+      <option value="admin">Administrador</option>
+      <option value="Santa Lolla Formosa">Santa Lolla Formosa</option>
+      <option value="Santa Lolla Cristalina">Santa Lolla Cristalina</option>
+      <option value="Havaianas Formosa">Havaianas Formosa</option>
+      <option value="Havaianas Sobradinho">Havaianas Sobradinho</option>
+      <option value="Havaianas Paranoá">Havaianas Paranoá</option>
+      <option value="Havaianas Unaí">Havaianas Unaí</option>
+      <option value="Havaianas Paracatu">Havaianas Paracatu</option>
+    </select>
+  </div>
+
+  <div class="group">
+    <label>Senha</label>
+    <input type="password" id="senha" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')entrar()"/>
+  </div>
+
+  <button class="btn" id="btnEntrar" onclick="entrar()">
+    <span id="btnTxt">Entrar</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+  <div class="error" id="erro"></div>
+
+  <div class="footer">Grupo Trend © 2026</div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
+
+function setLoading(on) {
+  document.getElementById('btnEntrar').disabled = on;
+  document.getElementById('btnTxt').style.display = on ? 'none' : 'block';
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+}
+
+function mostrarErro(msg) {
+  const el = document.getElementById('erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function entrar() {
+  const usuario = document.getElementById('usuario').value.trim();
+  const senha   = document.getElementById('senha').value.trim();
+  document.getElementById('erro').style.display = 'none';
+
+  if (!usuario) { mostrarErro('Selecione um usuário.'); return; }
+  if (!senha)   { mostrarErro('Digite a senha.'); return; }
+
+  setLoading(true);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ acao: 'login', usuario, senha })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      sessionStorage.setItem('gt_user',          data.usuario);
+      sessionStorage.setItem('gt_role',          data.role);
+      sessionStorage.setItem('gt_loja',          data.loja || '');
+      sessionStorage.setItem('gt_primeiroAcesso', data.primeiroAcesso ? 'sim' : 'nao');
+      window.location.href = 'index.html';
+    } else {
+      mostrarErro(data.erro || 'Erro ao autenticar.');
+      document.getElementById('senha').value = '';
+    }
+  } catch(e) {
+    mostrarErro('Erro de conexão. Tente novamente.');
+  }
+  setLoading(false);
+}
+</script>
+</body>
+</html>
