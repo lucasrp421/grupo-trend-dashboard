@@ -76,7 +76,7 @@ function hideLoading() {
 // API — chamada única, sem filtros de data
 // =============================================
 async function fetchTodos() {
-  const res = await fetch(API_URL);
+  const res = await fetch(API_URL + '?acao=dados');
   if (!res.ok) throw new Error('Erro na API: ' + res.status);
   return await res.json();
 }
