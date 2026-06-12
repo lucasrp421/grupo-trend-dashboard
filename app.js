@@ -13,8 +13,6 @@ const GT_PRIMEIRO_ACESSO = sessionStorage.getItem('gt_primeiroAcesso') === 'sim'
 
 if (!GT_USER) { window.location.href = 'login.html'; }
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
-
 async function apiPost(body) {
   const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
   return res.json();
