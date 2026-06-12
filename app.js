@@ -4,6 +4,23 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec";
 
 // =============================================
+// AUTH — verificação de sessão
+// =============================================
+const GT_USER           = sessionStorage.getItem('gt_user');
+const GT_ROLE           = sessionStorage.getItem('gt_role');
+const GT_LOJA           = sessionStorage.getItem('gt_loja');
+const GT_PRIMEIRO_ACESSO = sessionStorage.getItem('gt_primeiroAcesso') === 'sim';
+
+if (!GT_USER) { window.location.href = 'login.html'; }
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
+
+async function apiPost(body) {
+  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  return res.json();
+}
+
+// =============================================
 // ESTADO GLOBAL
 // =============================================
 let REGISTROS_BRUTOS = null; // todos os dados carregados uma vez
@@ -69,6 +86,11 @@ async function fetchTodos() {
 // =============================================
 function filtrarLocalmente(filtros) {
   if (!REGISTROS_BRUTOS) return null;
+
+  // Força filtro de loja para usuário não-admin
+  if (GT_ROLE === 'loja' && GT_LOJA) {
+    filtros = { ...filtros, lojas: [GT_LOJA] };
+  }
 
   const dI = filtros.dataInicio ? parseBR(filtros.dataInicio) : null;
   const dF = filtros.dataFim    ? parseBR(filtros.dataFim)    : null;
@@ -327,6 +349,20 @@ async function carregar() {
     const chips = $('dChips'); if(chips) chips.innerHTML='';
     renderMChips({});
 
+    // Se for loja, trava o filtro de loja
+    if (GT_ROLE === 'loja') {
+      ['dLoja','mLoja'].forEach(id => {
+        const e = $(id); if (!e) return;
+        e.value = GT_LOJA;
+        e.disabled = true;
+      });
+      // Oculta filtro de marca (loja já define a marca)
+      ['dMarca','mMarca'].forEach(id => {
+        const e = $(id); if (!e) return;
+        e.disabled = true;
+      });
+    }
+
     // Aplica só hoje por padrão
     aplicarHoje();
 
@@ -514,4 +550,151 @@ function gerarPDF() {
 // =============================================
 // INIT
 // =============================================
-window.addEventListener('load',()=>{initLayout();carregar();});
+window.addEventListener('load', () => {
+  initLayout();
+  carregar();
+  injetarUI();
+  if (GT_PRIMEIRO_ACESSO && GT_ROLE === 'loja') {
+    setTimeout(() => abrirTrocarSenha(true), 800);
+  }
+});
+
+function injetarUI() {
+  const nome = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
+  const adminBtn = GT_ROLE === 'admin'
+    ? `<button onclick="abrirPainelAdmin()" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#5b9cf6;border:1px solid #2a2a35;font-size:11px;cursor:pointer;margin-right:4px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Usuários
+       </button>`
+    : `<button onclick="abrirTrocarSenha(false)" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:11px;cursor:pointer;margin-right:4px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Senha
+       </button>`;
+  const html = `<div style="display:flex;align-items:center">
+    <span style="font-size:11px;color:#7070a0;margin-right:8px">${nome}</span>
+    ${adminBtn}
+    <button onclick="logout()" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:11px;cursor:pointer">Sair</button>
+  </div>`;
+  const el = document.querySelector('.d-top-r');
+  if (el) { const d=document.createElement('div'); d.innerHTML=html; el.insertBefore(d,el.firstChild); }
+}
+
+function logout() {
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// =============================================
+// MODAL — TROCAR SENHA
+// =============================================
+function abrirTrocarSenha(obrigatorio) {
+  const overlay = document.createElement('div');
+  overlay.id = 'modalSenha';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:#14141a;border:1px solid #2a2a35;border-radius:16px;padding:32px;width:100%;max-width:360px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:16px;font-weight:600;color:#eeeef4;margin-bottom:6px">${obrigatorio ? '🔐 Defina sua senha' : '🔑 Trocar senha'}</div>
+        <div style="font-size:12px;color:#7070a0">${obrigatorio ? 'Primeiro acesso — crie uma senha pessoal' : 'Digite sua senha atual e a nova senha'}</div>
+      </div>
+      ${!obrigatorio ? `<div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#7070a0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Senha atual</div>
+        <input id="senhaAtual" type="password" placeholder="Senha atual" style="width:100%;height:40px;background:#1c1c26;border:1px solid #2a2a35;border-radius:8px;color:#eeeef4;font-size:13px;padding:0 12px;outline:none"/>
+      </div>` : ''}
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:#7070a0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Nova senha</div>
+        <input id="novaSenha1" type="password" placeholder="Nova senha (mín. 4 caracteres)" style="width:100%;height:40px;background:#1c1c26;border:1px solid #2a2a35;border-radius:8px;color:#eeeef4;font-size:13px;padding:0 12px;outline:none"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:#7070a0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Confirmar nova senha</div>
+        <input id="novaSenha2" type="password" placeholder="Repita a nova senha" style="width:100%;height:40px;background:#1c1c26;border:1px solid #2a2a35;border-radius:8px;color:#eeeef4;font-size:13px;padding:0 12px;outline:none"/>
+      </div>
+      <div id="erroSenha" style="background:#2a1a1a;border:1px solid #e05c5c44;border-radius:8px;padding:8px 12px;color:#e05c5c;font-size:12px;margin-bottom:14px;display:none"></div>
+      <button onclick="confirmarTrocarSenha(${obrigatorio})" style="width:100%;height:42px;background:#5b9cf6;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:${obrigatorio?'0':'10px'}">Salvar senha</button>
+      ${!obrigatorio ? `<button onclick="document.getElementById('modalSenha').remove()" style="width:100%;height:38px;background:transparent;color:#7070a0;border:1px solid #2a2a35;border-radius:10px;font-size:13px;cursor:pointer">Cancelar</button>` : ''}
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function confirmarTrocarSenha(obrigatorio) {
+  const senhaAtual = obrigatorio ? '12345' : (document.getElementById('senhaAtual')?.value || '');
+  const nova1 = document.getElementById('novaSenha1').value.trim();
+  const nova2 = document.getElementById('novaSenha2').value.trim();
+  const erroEl = document.getElementById('erroSenha');
+
+  const erro = msg => { erroEl.textContent=msg; erroEl.style.display='block'; };
+  erroEl.style.display = 'none';
+
+  if (!nova1) return erro('Digite a nova senha.');
+  if (nova1.length < 4) return erro('A senha deve ter pelo menos 4 caracteres.');
+  if (nova1 === '12345') return erro('Escolha uma senha diferente da padrão.');
+  if (nova1 !== nova2) return erro('As senhas não coincidem.');
+
+  try {
+    const res = await apiPost({ acao:'trocarSenha', usuario:GT_USER, senhaAtual, novaSenha:nova1 });
+    if (res.ok) {
+      sessionStorage.setItem('gt_primeiroAcesso','nao');
+      document.getElementById('modalSenha').remove();
+      // Feedback de sucesso
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #3b6d11;border-radius:10px;padding:12px 20px;color:#c0dd97;font-size:13px;z-index:9999;white-space:nowrap';
+      toast.textContent = '✓ Senha alterada com sucesso!';
+      document.body.appendChild(toast);
+      setTimeout(()=>toast.remove(), 3000);
+    } else {
+      erro(res.erro || 'Erro ao salvar.');
+    }
+  } catch(e) { erro('Erro de conexão.'); }
+}
+
+// =============================================
+// PAINEL ADMIN — GERENCIAR USUÁRIOS
+// =============================================
+async function abrirPainelAdmin() {
+  const overlay = document.createElement('div');
+  overlay.id = 'modalAdmin';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  overlay.innerHTML = `
+    <div style="background:#14141a;border:1px solid #2a2a35;border-radius:16px;padding:32px;width:100%;max-width:560px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+        <div style="font-size:16px;font-weight:600;color:#eeeef4">👥 Gerenciar usuários</div>
+        <button onclick="document.getElementById('modalAdmin').remove()" style="background:transparent;border:none;color:#7070a0;font-size:20px;cursor:pointer;padding:0 4px">×</button>
+      </div>
+      <div id="adminLista" style="color:#7070a0;font-size:13px;text-align:center;padding:20px">Carregando...</div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  try {
+    const res = await apiPost({ acao:'listarUsuarios', role:'admin' });
+    if (!res.ok) { document.getElementById('adminLista').textContent = res.erro; return; }
+
+    const html = res.usuarios.map(u => `
+      <div style="background:#1c1c26;border:1px solid #2a2a35;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <div style="font-size:13px;font-weight:500;color:#eeeef4">${u.usuario === 'admin' ? '⚙️ Administrador' : u.usuario}</div>
+          <div style="font-size:11px;color:#7070a0;margin-top:2px">
+            Senha: <code style="background:#0d0d10;padding:1px 6px;border-radius:4px;color:#5b9cf6">${u.senha}</code>
+            ${u.primeiroAcesso==='SIM' ? '<span style="color:#e05c5c;margin-left:6px;font-size:10px">● Não alterou a senha</span>' : '<span style="color:#639922;margin-left:6px;font-size:10px">● Senha personalizada</span>'}
+          </div>
+        </div>
+        ${u.role !== 'admin' ? `<button onclick="resetarSenhaAdmin('${u.usuario}')" style="padding:0 14px;height:32px;background:#1c1c22;color:#e05c5c;border:1px solid #e05c5c44;border-radius:8px;font-size:11px;cursor:pointer;white-space:nowrap">Resetar senha</button>` : ''}
+      </div>`).join('');
+
+    document.getElementById('adminLista').innerHTML = html;
+  } catch(e) {
+    document.getElementById('adminLista').textContent = 'Erro ao carregar usuários.';
+  }
+}
+
+async function resetarSenhaAdmin(usuario) {
+  if (!confirm(`Resetar senha de "${usuario}" para 12345?`)) return;
+  try {
+    const res = await apiPost({ acao:'resetarSenha', role:'admin', usuario, novaSenha:'12345' });
+    if (res.ok) {
+      document.getElementById('modalAdmin').remove();
+      abrirPainelAdmin();
+    } else {
+      alert(res.erro || 'Erro ao resetar.');
+    }
+  } catch(e) { alert('Erro de conexão.'); }
+}
