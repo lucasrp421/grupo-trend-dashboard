@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#0d0d10"/>
+  <title>Grupo Trend — Follow-Up</title>
+  <script>if(!sessionStorage.getItem('gt_user'))window.location.href='login.html';</script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0d0d10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#eeeef4;min-height:100vh}
+
+    /* TOPBAR */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:#14141a;border-bottom:1px solid #2a2a35;position:sticky;top:0;z-index:100}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .logo-icon svg{width:28px;height:28px;fill:#5b9cf6}
+    .logo-name{font-size:15px;font-weight:600;color:#eeeef4}
+    .logo-sub{font-size:11px;color:#7070a0}
+    .topbar-right{display:flex;align-items:center;gap:8px}
+    .btn-back{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:34px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:12px;cursor:pointer;text-decoration:none}
+    .btn-back:hover{border-color:#5b9cf6;color:#5b9cf6}
+
+    /* FILTROS */
+    .filters{padding:16px 24px;background:#14141a;border-bottom:1px solid #2a2a35;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+    .fg{display:flex;flex-direction:column;gap:4px}
+    .flabel{font-size:10px;color:#7070a0;text-transform:uppercase;letter-spacing:.5px}
+    .filters select,.filters input[type=date]{height:36px;background:#1c1c26;border:1px solid #2a2a35;border-radius:8px;color:#eeeef4;font-size:12px;padding:0 10px;outline:none;min-width:140px}
+    .filters select:focus,.filters input:focus{border-color:#5b9cf6}
+    .btn-filtrar{height:36px;padding:0 16px;background:#5b9cf6;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+    .btn-filtrar:hover{background:#4a8ae0}
+    .badge-total{font-size:12px;color:#7070a0;align-self:center;margin-left:4px}
+
+    /* CONTEÚDO */
+    .content{padding:20px 24px;max-width:1100px;margin:0 auto}
+
+    /* CARDS */
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+    .card{background:#14141a;border:1px solid #2a2a35;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border .2s}
+    .card:hover{border-color:#3a3a55}
+    .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .card-nome{font-size:14px;font-weight:600;color:#eeeef4}
+    .card-meta{font-size:11px;color:#7070a0;margin-top:2px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+    .pill-sl{background:#1a2a1a;color:#7aaa4a;border:1px solid #3a5a1a}
+    .pill-hv{background:#2a1a1a;color:#e07070;border:1px solid #5a2a2a}
+    .motivo-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;background:#2a2a1a;color:#ccaa44;border:1px solid #4a4a1a}
+    .card-detalhe{font-size:12px;color:#aaaacc;line-height:1.5;background:#1c1c26;border-radius:8px;padding:10px 12px;border-left:3px solid #2a2a45}
+    .card-ia{font-size:12px;color:#c0d4f0;line-height:1.6;background:#141a26;border-radius:8px;padding:10px 12px;border-left:3px solid #5b9cf6;display:none}
+    .card-ia.show{display:block}
+    .ia-label{font-size:10px;color:#5b9cf6;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+    .card-footer{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-ia{flex:1;min-width:100px;height:34px;background:#141a26;color:#5b9cf6;border:1px solid #2a3a5a;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+    .btn-ia:hover{background:#1a2a40;border-color:#5b9cf6}
+    .btn-ia:disabled{opacity:.5;cursor:not-allowed}
+    .btn-wpp{flex:1;min-width:100px;height:34px;background:#1a2a1a;color:#25d366;border:1px solid #1a4a2a;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;text-decoration:none}
+    .btn-wpp:hover{background:#1f3a1f;border-color:#25d366}
+    .btn-wpp.disabled{opacity:.4;pointer-events:none}
+    .spinner-sm{width:12px;height:12px;border:2px solid rgba(91,156,246,.3);border-top-color:#5b9cf6;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:60px 20px;color:#5a5a7a}
+    .empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.3}
+
+    /* LOADING */
+    .loading-wrap{text-align:center;padding:60px;color:#5a5a7a;font-size:13px}
+
+    /* MOBILE */
+    @media(max-width:600px){
+      .topbar{padding:0 16px}
+      .filters{padding:12px 16px}
+      .content{padding:12px 16px}
+      .cards-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
+    <div>
+      <div class="logo-name">Follow-Up</div>
+      <div class="logo-sub">Clientes para recontatar</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="userLabel" style="font-size:11px;color:#7070a0"></span>
+    <a href="index.html" class="btn-back">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="fg"><span class="flabel">Data início</span><input type="date" id="fDI"/></div>
+  <div class="fg"><span class="flabel">Data fim</span><input type="date" id="fDF"/></div>
+  <div class="fg" id="fLojaWrap"><span class="flabel">Loja</span>
+    <select id="fLoja">
+      <option value="">Todas as lojas</option>
+      <option>Santa Lolla Formosa</option>
+      <option>Santa Lolla Cristalina</option>
+      <option>Havaianas Formosa</option>
+      <option>Havaianas Sobradinho</option>
+      <option>Havaianas Paranoá</option>
+      <option>Havaianas Unaí</option>
+      <option>Havaianas Paracatu</option>
+    </select>
+  </div>
+  <div class="fg"><span class="flabel">Motivo</span>
+    <select id="fMotivo">
+      <option value="">Todos os motivos</option>
+      <option>NÃO TEM</option>
+      <option>PREÇO</option>
+      <option>OUTROS</option>
+      <option>NÚMERO</option>
+    </select>
+  </div>
+  <button class="btn-filtrar" onclick="filtrar()">Filtrar</button>
+  <span class="badge-total" id="badgeTotal"></span>
+</div>
+
+<div class="content">
+  <div id="cardsWrap" class="loading-wrap">Carregando dados...</div>
+</div>
+
+<script>
+const API_URL      = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
+const CLAUDE_KEY   = 'SUA_CHAVE_AQUI';
+const GT_USER      = sessionStorage.getItem('gt_user');
+const GT_ROLE      = sessionStorage.getItem('gt_role');
+const GT_LOJA      = sessionStorage.getItem('gt_loja');
+
+if (!GT_USER) window.location.href = 'login.html';
+
+document.getElementById('userLabel').textContent = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
+
+// Se for loja, trava e oculta filtro de loja
+if (GT_ROLE === 'loja') {
+  const wrap = document.getElementById('fLojaWrap');
+  if (wrap) wrap.style.display = 'none';
+}
+
+const pad = n => String(n).padStart(2,'0');
+const hoje = new Date();
+const toInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+// Padrão: últimos 7 dias
+const d7 = new Date(); d7.setDate(d7.getDate() - 7);
+document.getElementById('fDI').value = toInput(d7);
+document.getElementById('fDF').value = toInput(hoje);
+
+let TODOS = [];
+
+async function init() {
+  try {
+    const res = await fetch(API_URL + '?acao=dados');
+    const data = await res.json();
+    if (data.erro) throw new Error(data.erro);
+
+    // Filtra só NÃO com detalhamento
+    TODOS = (data.registros || []).filter(r =>
+      r.comprou === 'NÃO' && r.detalhe && r.detalhe.trim() !== ''
+    );
+
+    filtrar();
+  } catch(e) {
+    document.getElementById('cardsWrap').innerHTML =
+      `<div class="empty"><p>Erro ao carregar dados.<br><small>${e.message}</small></p></div>`;
+  }
+}
+
+function filtrar() {
+  const dI    = document.getElementById('fDI').value;
+  const dF    = document.getElementById('fDF').value;
+  const loja  = GT_ROLE === 'loja' ? GT_LOJA : document.getElementById('fLoja').value;
+  const motivo = document.getElementById('fMotivo').value;
+
+  let lista = TODOS;
+
+  if (dI) {
+    const [yi,mi,di] = dI.split('-').map(Number);
+    const inicio = new Date(yi, mi-1, di);
+    lista = lista.filter(r => {
+      if (!r.data) return false;
+      const [dd,mm,yy] = r.data.split('/').map(Number);
+      return new Date(yy,mm-1,dd) >= inicio;
+    });
+  }
+  if (dF) {
+    const [yf,mf,df] = dF.split('-').map(Number);
+    const fim = new Date(yf, mf-1, df);
+    lista = lista.filter(r => {
+      if (!r.data) return false;
+      const [dd,mm,yy] = r.data.split('/').map(Number);
+      return new Date(yy,mm-1,dd) <= fim;
+    });
+  }
+  if (loja)   lista = lista.filter(r => r.loja === loja);
+  if (motivo) lista = lista.filter(r => r.motivo === motivo);
+
+  document.getElementById('badgeTotal').textContent =
+    lista.length > 0 ? `${lista.length} registro${lista.length>1?'s':''}` : '';
+
+  renderCards(lista);
+}
+
+function renderCards(lista) {
+  const wrap = document.getElementById('cardsWrap');
+
+  if (!lista.length) {
+    wrap.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      <p>Nenhum registro encontrado<br><small>Tente ajustar os filtros</small></p>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = '<div class="cards-grid">' +
+    lista.map((r,i) => cardHTML(r, i)).join('') +
+  '</div>';
+}
+
+function cardHTML(r, idx) {
+  const pill = r.marca === 'Santa Lolla'
+    ? '<span class="pill pill-sl">SL</span>'
+    : '<span class="pill pill-hv">Hav</span>';
+  const motivoTag = r.motivo
+    ? `<span class="motivo-tag">${r.motivo}</span>`
+    : '';
+  const temTel = r.telefone && r.telefone.trim() !== '';
+  const wppClass = temTel ? '' : 'disabled';
+  const wppTitle = temTel ? '' : 'title="Sem telefone cadastrado"';
+
+  return `<div class="card" id="card-${idx}">
+    <div class="card-header">
+      <div>
+        <div class="card-nome">${r.cliente || 'Cliente'}</div>
+        <div class="card-meta">${r.data || ''} · ${r.vendedor || ''} · ${r.loja || ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        ${pill}${motivoTag}
+      </div>
+    </div>
+    <div class="card-detalhe">"${r.detalhe}"</div>
+    <div class="card-ia" id="ia-${idx}">
+      <div class="ia-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14.93V17a1 1 0 00-2 0v-.07A8 8 0 014 12a8 8 0 0116 0 8 8 0 01-7 7.93zM11 9V7a1 1 0 012 0v2a1 1 0 01-2 0z"/></svg>
+        Sugestão IA
+      </div>
+      <div id="ia-txt-${idx}"></div>
+    </div>
+    <div class="card-footer">
+      <button class="btn-ia" id="btn-ia-${idx}" onclick="gerarIA(${idx})">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Gerar sugestão IA
+      </button>
+      <a class="btn-wpp ${wppClass}" id="btn-wpp-${idx}" ${wppTitle}
+         href="${temTel ? wppLink(r.telefone, '') : '#'}" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        ${temTel ? 'Enviar WhatsApp' : 'Sem telefone'}
+      </a>
+    </div>
+  </div>`;
+}
+
+// Guarda dados para acesso por índice
+let LISTA_ATUAL = [];
+const origRender = renderCards;
+window.renderCards = function(lista) {
+  LISTA_ATUAL = lista;
+  origRender(lista);
+};
+// Override
+function renderCards(lista) {
+  LISTA_ATUAL = lista;
+  const wrap = document.getElementById('cardsWrap');
+  if (!lista.length) {
+    wrap.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      <p>Nenhum registro encontrado<br><small>Tente ajustar os filtros</small></p>
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = '<div class="cards-grid">' +
+    lista.map((r,i) => cardHTML(r, i)).join('') +
+  '</div>';
+}
+
+function wppLink(tel, msg) {
+  const num = tel.replace(/\D/g,'');
+  const full = num.startsWith('55') ? num : '55' + num;
+  return `https://wa.me/${full}?text=${encodeURIComponent(msg)}`;
+}
+
+async function gerarIA(idx) {
+  const r = LISTA_ATUAL[idx];
+  if (!r) return;
+
+  const btn   = document.getElementById(`btn-ia-${idx}`);
+  const iaDiv = document.getElementById(`ia-${idx}`);
+  const iaTxt = document.getElementById(`ia-txt-${idx}`);
+  const wppBtn = document.getElementById(`btn-wpp-${idx}`);
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner-sm"></div> Gerando...';
+
+  const prompt = `Você é um especialista em vendas no varejo brasileiro.
+Uma vendedora registrou o seguinte atendimento:
+
+- Loja: ${r.loja}
+- Marca: ${r.marca}
+- Cliente: ${r.cliente || 'não informado'}
+- Motivo de não compra: ${r.motivo}
+- Contexto: "${r.detalhe}"
+- Data do atendimento: ${r.data}
+
+Crie uma mensagem de WhatsApp curta, calorosa e personalizada para recontatar esse cliente.
+A mensagem deve:
+1. Ser em português informal mas profissional
+2. Mencionar o contexto específico do atendimento
+3. Criar uma oportunidade para retorno
+4. Ter no máximo 3 parágrafos curtos
+5. Incluir o nome da loja/marca de forma natural
+6. NÃO usar emojis em excesso (máximo 2)
+
+Retorne APENAS o texto da mensagem, sem explicações, sem aspas, sem introdução.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const msg = data.content?.[0]?.text || 'Não foi possível gerar a mensagem.';
+
+    iaTxt.textContent = msg;
+    iaDiv.classList.add('show');
+
+    // Atualiza botão WhatsApp com a mensagem gerada
+    if (r.telefone && r.telefone.trim()) {
+      wppBtn.href = wppLink(r.telefone, msg);
+      wppBtn.classList.remove('disabled');
+    }
+
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Regerar`;
+    btn.disabled = false;
+
+  } catch(e) {
+    iaTxt.textContent = 'Erro ao conectar com a IA. Verifique a chave da API.';
+    iaDiv.classList.add('show');
+    btn.innerHTML = 'Tentar novamente';
+    btn.disabled = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
