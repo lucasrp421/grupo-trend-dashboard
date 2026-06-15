@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#0d0d10"/>
   <title>Grupo Trend — Dashboard</title>
   <link rel="stylesheet" href="style.css"/>
+  <script>if(!sessionStorage.getItem('gt_user'))window.location.href='login.html';</script>
 </head>
 <body>
 
@@ -31,6 +32,10 @@
       </div>
       <div class="d-top-r">
         <div class="d-status"><span class="s-dot" id="dDot"></span><span id="dTxt">carregando...</span></div>
+        <a href="followup.html" style="display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:36px;border-radius:10px;background:#141a26;color:#5b9cf6;border:1px solid #2a3a5a;font-size:12px;cursor:pointer;margin-right:4px;text-decoration:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.5 9.72 19.79 19.79 0 01.46 1.1 2 2 0 012.42.12h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.09 6.09l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          Follow-Up
+        </a>
         <button onclick="openReportModal()" style="display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:36px;border-radius:10px;background:#1c1c22;color:#eeeef4;border:1px solid #36363f;font-size:12px;cursor:pointer;margin-right:4px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Relatório
