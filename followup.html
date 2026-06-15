@@ -127,7 +127,6 @@
 
 <script>
 const API_URL      = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
-const CLAUDE_KEY   = 'SUA_CHAVE_AQUI';
 const GT_USER      = sessionStorage.getItem('gt_user');
 const GT_ROLE      = sessionStorage.getItem('gt_role');
 const GT_LOJA      = sessionStorage.getItem('gt_loja');
@@ -306,46 +305,24 @@ async function gerarIA(idx) {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner-sm"></div> Gerando...';
 
-  const prompt = `Você é um especialista em vendas no varejo brasileiro.
-Uma vendedora registrou o seguinte atendimento:
-
-- Loja: ${r.loja}
-- Marca: ${r.marca}
-- Cliente: ${r.cliente || 'não informado'}
-- Motivo de não compra: ${r.motivo}
-- Contexto: "${r.detalhe}"
-- Data do atendimento: ${r.data}
-
-Crie uma mensagem de WhatsApp curta, calorosa e personalizada para recontatar esse cliente.
-A mensagem deve:
-1. Ser em português informal mas profissional
-2. Mencionar o contexto específico do atendimento
-3. Criar uma oportunidade para retorno
-4. Ter no máximo 3 parágrafos curtos
-5. Incluir o nome da loja/marca de forma natural
-6. NÃO usar emojis em excesso (máximo 2)
-
-Retorne APENAS o texto da mensagem, sem explicações, sem aspas, sem introdução.`;
-
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: prompt }]
+        acao: 'gerarMensagemIA',
+        loja: r.loja,
+        marca: r.marca,
+        cliente: r.cliente,
+        motivo: r.motivo,
+        detalhe: r.detalhe
       })
     });
 
     const data = await res.json();
-    const msg = data.content?.[0]?.text || 'Não foi possível gerar a mensagem.';
 
+    if (!data.ok) throw new Error(data.erro || 'Erro ao gerar mensagem.');
+
+    const msg = data.mensagem;
     iaTxt.textContent = msg;
     iaDiv.classList.add('show');
 
@@ -359,7 +336,7 @@ Retorne APENAS o texto da mensagem, sem explicações, sem aspas, sem introduç�
     btn.disabled = false;
 
   } catch(e) {
-    iaTxt.textContent = 'Erro ao conectar com a IA. Verifique a chave da API.';
+    iaTxt.textContent = 'Erro ao gerar mensagem: ' + e.message;
     iaDiv.classList.add('show');
     btn.innerHTML = 'Tentar novamente';
     btn.disabled = false;
