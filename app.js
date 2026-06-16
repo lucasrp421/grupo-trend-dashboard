@@ -35,7 +35,17 @@ const toInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate(
 const toBR = s => { const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; };
 const parseBR = s => { const [d,m,y] = s.split('/'); return new Date(+y, +m-1, +d); };
 const hoje = new Date();
-const C = { color: '#4a4a60', grid: 'rgba(255,255,255,0.04)', blue: '#5b9cf6', red: '#e05c5c' };
+function getChartColors() {
+  const cs = getComputedStyle(document.body);
+  const isDark = document.body.classList.contains('dark');
+  return {
+    color: cs.getPropertyValue('--text3').trim() || '#9aabaa',
+    grid: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(20,60,55,0.06)',
+    blue: cs.getPropertyValue('--blue').trim() || '#0d4f4a',
+    red: cs.getPropertyValue('--red').trim() || '#e0563f'
+  };
+}
+let C = getChartColors();
 
 // =============================================
 // LAYOUT
@@ -560,23 +570,32 @@ window.addEventListener('load', () => {
 });
 
 function injetarUI() {
+  // Preenche dados do usuário na sidebar desktop
   const nome = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
-  const adminBtn = GT_ROLE === 'admin'
-    ? `<button onclick="abrirPainelAdmin()" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#5b9cf6;border:1px solid #2a2a35;font-size:11px;cursor:pointer;margin-right:4px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Usuários
-       </button>`
-    : `<button onclick="abrirTrocarSenha(false)" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:11px;cursor:pointer;margin-right:4px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Senha
-       </button>`;
-  const html = `<div style="display:flex;align-items:center">
-    <span style="font-size:11px;color:#7070a0;margin-right:8px">${nome}</span>
-    ${adminBtn}
-    <button onclick="logout()" style="display:inline-flex;align-items:center;gap:5px;padding:0 12px;height:32px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:11px;cursor:pointer">Sair</button>
-  </div>`;
-  const el = document.querySelector('.d-top-r');
-  if (el) { const d=document.createElement('div'); d.innerHTML=html; el.insertBefore(d,el.firstChild); }
+  const inicial = nome.charAt(0).toUpperCase();
+
+  const avatar = document.getElementById('dSbAvatar');
+  const userName = document.getElementById('dSbUserName');
+  const userRole = document.getElementById('dSbUserRole');
+  if (avatar) avatar.textContent = inicial;
+  if (userName) userName.textContent = nome;
+  if (userRole) userRole.textContent = GT_ROLE === 'admin' ? 'Grupo Trend' : 'Loja';
+
+  // Admin: adiciona item "Usuários" na sidebar
+  if (GT_ROLE === 'admin') {
+    const nav = document.querySelector('.d-sb-nav');
+    if (nav && !document.getElementById('sbUsuariosBtn')) {
+      const actionsSection = [...nav.querySelectorAll('.d-sb-section')].find(s => s.textContent === 'Ações');
+      if (actionsSection) {
+        const btn = document.createElement('button');
+        btn.id = 'sbUsuariosBtn';
+        btn.className = 'd-sb-item';
+        btn.onclick = abrirPainelAdmin;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Usuários</span>';
+        actionsSection.parentNode.insertBefore(btn, actionsSection.nextSibling.nextSibling.nextSibling);
+      }
+    }
+  }
 }
 
 function logout() {
@@ -632,35 +651,19 @@ function renderSaudacao() {
   const nome = GT_ROLE === 'admin' ? 'Equipe Grupo Trend' : `Equipe ${GT_LOJA}`;
   const saudacao = getSaudacao();
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+  const hojeCapitalize = hoje.charAt(0).toUpperCase() + hoje.slice(1);
 
-  // Menu lateral
+  // Menu lateral mobile
   const el = document.getElementById('sideSaudacao');
-  if (el) el.innerHTML = `<span style="font-size:15px;font-weight:600;color:#eeeef4">${saudacao},</span><br>${nome} 👋`;
+  if (el) el.innerHTML = `<span style="font-size:15px;font-weight:600;color:var(--text)">${saudacao},</span><br>${nome} 👋`;
   const userEl = document.getElementById('sideUserName');
   if (userEl) userEl.textContent = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
 
-  // Card topo resumo mobile
-  const txt = document.getElementById('mSaudacaoTxt');
-  const sub = document.getElementById('mSaudacaoSub');
-  if (txt) txt.textContent = `${saudacao}, ${nome} 👋`;
-  if (sub) sub.textContent = hoje.charAt(0).toUpperCase() + hoje.slice(1);
-
-  // Sincroniza status dot no card
-  const mDot2 = document.getElementById('mDot2');
-  const mTxt2 = document.getElementById('mTxt2');
-  if (mDot2 && mTxt2) {
-    // Espelha o status do header
-    const observer = new MutationObserver(() => {
-      const dot = document.getElementById('mDot');
-      const txt = document.getElementById('mTxt');
-      if (dot) mDot2.className = dot.className;
-      if (txt) mTxt2.textContent = txt.textContent;
-    });
-    const dotEl = document.getElementById('mDot');
-    const txtEl = document.getElementById('mTxt');
-    if (dotEl) observer.observe(dotEl, { attributes: true });
-    if (txtEl) observer.observe(txtEl, { childList: true, characterData: true, subtree: true });
-  }
+  // Saudação topo desktop
+  const dG = document.getElementById('dGreeting');
+  const dGD = document.getElementById('dGreetingDate');
+  if (dG) dG.textContent = `${saudacao}, ${nome} 👋`;
+  if (dGD) dGD.textContent = hojeCapitalize;
 }
 
 // =============================================
@@ -669,28 +672,40 @@ function renderSaudacao() {
 const THEME_KEY = 'gt_theme';
 
 function applyTheme(theme) {
-  const icon  = document.getElementById('themeIcon');
-  const label = document.getElementById('themeLabel');
+  const sun = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+  const moon = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
 
-  if (theme === 'light') {
-    document.body.classList.add('light');
-    if (icon)  icon.innerHTML  = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    if (label) label.textContent = 'Modo escuro';
+  const setIcon = (iconId, labelId, isDark) => {
+    const icon = document.getElementById(iconId);
+    const label = document.getElementById(labelId);
+    if (icon) icon.innerHTML = isDark ? sun : moon;
+    if (label) label.textContent = isDark ? 'Modo claro' : 'Modo escuro';
+  };
+
+  if (theme === 'dark') {
+    document.body.classList.add('dark');
+    setIcon('themeIcon', 'themeLabel', true);
+    setIcon('themeIconD', 'themeLabelD', true);
   } else {
-    document.body.classList.remove('light');
-    if (icon)  icon.innerHTML  = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
-    if (label) label.textContent = 'Modo claro';
+    document.body.classList.remove('dark');
+    setIcon('themeIcon', 'themeLabel', false);
+    setIcon('themeIconD', 'themeLabelD', false);
   }
   localStorage.setItem(THEME_KEY, theme);
 }
 
 function toggleTheme() {
-  const current = localStorage.getItem(THEME_KEY) || 'dark';
-  applyTheme(current === 'dark' ? 'light' : 'dark');
+  const current = localStorage.getItem(THEME_KEY) || 'light';
+  applyTheme(current === 'light' ? 'dark' : 'light');
+  // Recarrega cores dos gráficos e redesenha
+  C = getChartColors();
+  if (typeof DADOS !== 'undefined' && DADOS) {
+    try { renderDash(); } catch(e) {}
+  }
 }
 
 function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
   applyTheme(saved);
 }
 

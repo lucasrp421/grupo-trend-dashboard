@@ -3,81 +3,136 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <meta name="theme-color" content="#0d0d10"/>
+  <meta name="theme-color" content="#0d3d39"/>
   <title>Grupo Trend — Follow-Up</title>
   <script>if(!sessionStorage.getItem('gt_user'))window.location.href='login.html';</script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#0d0d10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#eeeef4;min-height:100vh}
-
-    /* TOPBAR */
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:#14141a;border-bottom:1px solid #2a2a35;position:sticky;top:0;z-index:100}
-    .topbar-left{display:flex;align-items:center;gap:12px}
-    .logo-icon svg{width:28px;height:28px;fill:#5b9cf6}
-    .logo-name{font-size:15px;font-weight:600;color:#eeeef4}
-    .logo-sub{font-size:11px;color:#7070a0}
-    .topbar-right{display:flex;align-items:center;gap:8px}
-    .btn-back{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:34px;border-radius:8px;background:#1c1c22;color:#aaa;border:1px solid #2a2a35;font-size:12px;cursor:pointer;text-decoration:none}
-    .btn-back:hover{border-color:#5b9cf6;color:#5b9cf6}
-
-    /* FILTROS */
-    .filters{padding:16px 24px;background:#14141a;border-bottom:1px solid #2a2a35;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
-    .fg{display:flex;flex-direction:column;gap:4px}
-    .flabel{font-size:10px;color:#7070a0;text-transform:uppercase;letter-spacing:.5px}
-    .filters select,.filters input[type=date]{height:36px;background:#1c1c26;border:1px solid #2a2a35;border-radius:8px;color:#eeeef4;font-size:12px;padding:0 10px;outline:none;min-width:140px}
-    .filters select:focus,.filters input:focus{border-color:#5b9cf6}
-    .btn-filtrar{height:36px;padding:0 16px;background:#5b9cf6;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
-    .btn-filtrar:hover{background:#4a8ae0}
-    .badge-total{font-size:12px;color:#7070a0;align-self:center;margin-left:4px}
-
-    /* CONTEÚDO */
-    .content{padding:20px 24px;max-width:1100px;margin:0 auto}
-
-    /* CARDS */
-    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-    .card{background:#14141a;border:1px solid #2a2a35;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border .2s}
-    .card:hover{border-color:#3a3a55}
-    .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-    .card-nome{font-size:14px;font-weight:600;color:#eeeef4}
-    .card-meta{font-size:11px;color:#7070a0;margin-top:2px}
-    .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
-    .pill-sl{background:#1a2a1a;color:#7aaa4a;border:1px solid #3a5a1a}
-    .pill-hv{background:#2a1a1a;color:#e07070;border:1px solid #5a2a2a}
-    .motivo-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;background:#2a2a1a;color:#ccaa44;border:1px solid #4a4a1a}
-    .card-detalhe{font-size:12px;color:#aaaacc;line-height:1.5;background:#1c1c26;border-radius:8px;padding:10px 12px;border-left:3px solid #2a2a45}
-    .card-ia{font-size:12px;color:#c0d4f0;line-height:1.6;background:#141a26;border-radius:8px;padding:10px 12px;border-left:3px solid #5b9cf6;display:none}
-    .card-ia.show{display:block}
-    .ia-label{font-size:10px;color:#5b9cf6;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;gap:4px}
-    .card-footer{display:flex;gap:8px;flex-wrap:wrap}
-    .btn-ia{flex:1;min-width:100px;height:34px;background:#141a26;color:#5b9cf6;border:1px solid #2a3a5a;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
-    .btn-ia:hover{background:#1a2a40;border-color:#5b9cf6}
-    .btn-ia:disabled{opacity:.5;cursor:not-allowed}
-    .btn-wpp{flex:1;min-width:100px;height:34px;background:#1a2a1a;color:#25d366;border:1px solid #1a4a2a;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;text-decoration:none}
-    .btn-wpp:hover{background:#1f3a1f;border-color:#25d366}
-    .btn-wpp.disabled{opacity:.4;pointer-events:none}
-    .spinner-sm{width:12px;height:12px;border:2px solid rgba(91,156,246,.3);border-top-color:#5b9cf6;border-radius:50%;animation:spin .7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* EMPTY */
-    .empty{text-align:center;padding:60px 20px;color:#5a5a7a}
-    .empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.3}
-
-    /* LOADING */
-    .loading-wrap{text-align:center;padding:60px;color:#5a5a7a;font-size:13px}
-
-    /* MOBILE */
-    @media(max-width:600px){
-      .topbar{padding:0 16px}
-      .filters{padding:12px 16px}
-      .content{padding:12px 16px}
-      .cards-grid{grid-template-columns:1fr}
-    }
-  </style>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Grupo Trend"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+    :root{
+      --bg:#eef1f2;--bg2:#fff;--bg3:#f4f6f7;--bg4:#e8eced;
+      --border:#e2e7e8;--border2:#d2d9da;
+      --text:#15302d;--text2:#5a6e6b;--text3:#9aabaa;
+      --primary:#0d4f4a;--primary-dim:#e0efed;--primary-mid:#b8dcd8;
+      --green:#1faa6a;--green-dim:#e2f5ec;
+      --red:#e0563f;--red-dim:#fde8e3;
+      --amber:#e8a020;--amber-dim:#fcf0d8;
+      --purple:#6b6fc4;--purple-dim:#ebecf8;
+      --wpp:#1faa6a;
+      --shadow:0 1px 3px rgba(20,60,55,.06),0 4px 16px rgba(20,60,55,.04);
+    }
+    body.dark{
+      --bg:#0a1413;--bg2:#0f1f1d;--bg3:#16302d;--bg4:#1e3d39;
+      --border:#1c3835;--border2:#2a4d48;
+      --text:#eaf3f1;--text2:#8ba8a3;--text3:#5a7873;
+      --primary:#2dd4bf;--primary-dim:#0f2e2a;--primary-mid:#1a4d46;
+      --green:#34d888;--green-dim:#0d2a1e;
+      --red:#f06a52;--red-dim:#2e1512;
+      --amber:#f0b040;--amber-dim:#2e2410;
+      --purple:#8b8fe0;--purple-dim:#1a1a30;
+      --shadow:0 2px 12px rgba(0,0,0,.4);
+    }
+
+    body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;color:var(--text);min-height:100vh;transition:background .25s}
+
+    /* TOPBAR */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:62px;background:var(--primary);position:sticky;top:0;z-index:100}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
+    .logo-icon svg{width:20px;height:20px;fill:#fff}
+    .logo-name{font-size:16px;font-weight:700;color:#fff}
+    .logo-sub{font-size:11px;color:rgba(255,255,255,.7)}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .user-label{font-size:12px;color:rgba(255,255,255,.85)}
+    .btn-back{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;border:none;font-size:13px;cursor:pointer;text-decoration:none;font-weight:500;transition:background .15s}
+    .btn-back:hover{background:rgba(255,255,255,.2)}
+
+    /* CONTENT */
+    .content{max-width:1000px;margin:0 auto;padding:20px 24px 40px}
+
+    /* HEADER SECTION */
+    .page-header{margin-bottom:20px}
+    .page-title{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+    .page-sub{font-size:13px;color:var(--text3);margin-top:3px}
+
+    /* FILTROS BÁSICOS */
+    .filters-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px}
+    .fg{display:flex;flex-direction:column;gap:5px}
+    .flabel{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+    .filters-row select,.filters-row input[type=date]{height:42px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;padding:0 12px;outline:none;min-width:150px;-webkit-appearance:none;transition:border .2s;box-shadow:var(--shadow)}
+    .filters-row select:focus,.filters-row input:focus{border-color:var(--primary)}
+
+    /* BALÕES DE MOTIVO */
+    .motivo-balls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+    .ball{
+      display:flex;align-items:center;gap:10px;
+      padding:12px 18px;border-radius:14px;
+      background:var(--bg2);border:2px solid var(--border);
+      cursor:pointer;transition:all .18s;box-shadow:var(--shadow);
+      min-width:130px;
+    }
+    .ball:hover{transform:translateY(-2px)}
+    .ball.active{border-color:var(--primary);background:var(--primary-dim)}
+    .ball-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .ball-icon svg{width:19px;height:19px}
+    .ball-info{flex:1}
+    .ball-count{font-size:22px;font-weight:700;line-height:1;color:var(--text)}
+    .ball-label{font-size:11px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+    /* Cores por tipo */
+    .ball-todos .ball-icon{background:var(--primary-dim);color:var(--primary)}
+    .ball-outros .ball-icon{background:var(--purple-dim);color:var(--purple)}
+    .ball-preco .ball-icon{background:var(--amber-dim);color:var(--amber)}
+    .ball-naotem .ball-icon{background:var(--red-dim);color:var(--red)}
+    .ball-numero .ball-icon{background:var(--green-dim);color:var(--green)}
+
+    /* CARDS GRID */
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow);transition:transform .15s}
+    .card:hover{transform:translateY(-2px)}
+    .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .card-nome{font-size:15px;font-weight:700;color:var(--text)}
+    .card-meta{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4}
+    .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+    .pill-sl{background:var(--green-dim);color:var(--green)}
+    .pill-hv{background:var(--red-dim);color:var(--red)}
+    .motivo-tag{display:inline-block;padding:3px 9px;border-radius:7px;font-size:10px;font-weight:600;margin-top:5px}
+    .mt-outros{background:var(--purple-dim);color:var(--purple)}
+    .mt-preco{background:var(--amber-dim);color:var(--amber)}
+    .mt-naotem{background:var(--red-dim);color:var(--red)}
+    .mt-numero{background:var(--green-dim);color:var(--green)}
+    .card-detalhe{font-size:13px;color:var(--text2);line-height:1.5;background:var(--bg3);border-radius:10px;padding:12px 14px;border-left:3px solid var(--border2)}
+    .card-ia{font-size:13px;color:var(--text);line-height:1.6;background:var(--primary-dim);border-radius:10px;padding:12px 14px;border-left:3px solid var(--primary);display:none}
+    .card-ia.show{display:block}
+    .ia-label{font-size:10px;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+    .card-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+    .btn-ia{flex:1;min-width:120px;height:38px;background:var(--primary-dim);color:var(--primary);border:1px solid var(--primary-mid);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s}
+    .btn-ia:hover{background:var(--primary);color:#fff}
+    .btn-ia:disabled{opacity:.5;cursor:not-allowed}
+    .btn-wpp{flex:1;min-width:120px;height:38px;background:var(--wpp);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .18s;text-decoration:none}
+    .btn-wpp:hover{filter:brightness(1.08)}
+    .btn-wpp.disabled{background:var(--bg4);color:var(--text3);pointer-events:none}
+    .spinner-sm{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .empty{text-align:center;padding:70px 20px;color:var(--text3);grid-column:1/-1}
+    .empty svg{width:52px;height:52px;margin-bottom:14px;opacity:.4}
+    .loading-wrap{text-align:center;padding:70px;color:var(--text3);font-size:14px}
+
+    @media(max-width:600px){
+      .topbar{padding:0 16px}
+      .content{padding:16px 16px 40px}
+      .cards-grid{grid-template-columns:1fr}
+      .ball{min-width:calc(50% - 5px);flex:1}
+      .user-label{display:none}
+      .btn-back span{display:none}
+      .btn-back{padding:0 12px}
+    }
+  </style>
 </head>
 <body>
 
@@ -90,99 +145,113 @@
     </div>
   </div>
   <div class="topbar-right">
-    <span id="userLabel" style="font-size:11px;color:#7070a0"></span>
+    <span class="user-label" id="userLabel"></span>
     <a href="index.html" class="btn-back">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      Dashboard
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>Dashboard</span>
     </a>
   </div>
 </div>
 
-<div class="filters">
-  <div class="fg"><span class="flabel">Data início</span><input type="date" id="fDI"/></div>
-  <div class="fg"><span class="flabel">Data fim</span><input type="date" id="fDF"/></div>
-  <div class="fg" id="fLojaWrap"><span class="flabel">Loja</span>
-    <select id="fLoja">
-      <option value="">Todas as lojas</option>
-      <option>Santa Lolla Formosa</option>
-      <option>Santa Lolla Cristalina</option>
-      <option>Havaianas Formosa</option>
-      <option>Havaianas Sobradinho</option>
-      <option>Havaianas Paranoá</option>
-      <option>Havaianas Unaí</option>
-      <option>Havaianas Paracatu</option>
-    </select>
-  </div>
-  <div class="fg"><span class="flabel">Motivo</span>
-    <select id="fMotivo">
-      <option value="">Todos os motivos</option>
-      <option>NÃO TEM</option>
-      <option>PREÇO</option>
-      <option>OUTROS</option>
-      <option>NÚMERO</option>
-    </select>
-  </div>
-  <button class="btn-filtrar" onclick="filtrar()">Filtrar</button>
-  <span class="badge-total" id="badgeTotal"></span>
-</div>
-
 <div class="content">
+  <div class="page-header">
+    <div class="page-title">Acompanhamento de clientes</div>
+    <div class="page-sub">Clientes que não compraram — gere mensagens personalizadas e recontate via WhatsApp</div>
+  </div>
+
+  <!-- Filtros de data e loja -->
+  <div class="filters-row">
+    <div class="fg"><span class="flabel">Data início</span><input type="date" id="fDI" onchange="aplicarFiltros()"/></div>
+    <div class="fg"><span class="flabel">Data fim</span><input type="date" id="fDF" onchange="aplicarFiltros()"/></div>
+    <div class="fg" id="fLojaWrap"><span class="flabel">Loja</span>
+      <select id="fLoja" onchange="aplicarFiltros()">
+        <option value="">Todas as lojas</option>
+        <option>Santa Lolla Formosa</option>
+        <option>Santa Lolla Cristalina</option>
+        <option>Havaianas Formosa</option>
+        <option>Havaianas Sobradinho</option>
+        <option>Havaianas Paranoá</option>
+        <option>Havaianas Unaí</option>
+        <option>Havaianas Paracatu</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Balões de motivo -->
+  <div class="motivo-balls" id="motivoBalls">
+    <div class="ball ball-todos active" data-motivo="" onclick="selecionarMotivo(this,'')">
+      <div class="ball-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z" opacity="0"/><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></div>
+      <div class="ball-info"><div class="ball-count" id="cnt-todos">0</div><div class="ball-label">Todos</div></div>
+    </div>
+    <div class="ball ball-outros" data-motivo="OUTROS" onclick="selecionarMotivo(this,'OUTROS')">
+      <div class="ball-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+      <div class="ball-info"><div class="ball-count" id="cnt-outros">0</div><div class="ball-label">Outros</div></div>
+    </div>
+    <div class="ball ball-preco" data-motivo="PREÇO" onclick="selecionarMotivo(this,'PREÇO')">
+      <div class="ball-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <div class="ball-info"><div class="ball-count" id="cnt-preco">0</div><div class="ball-label">Preço</div></div>
+    </div>
+    <div class="ball ball-naotem" data-motivo="NÃO TEM" onclick="selecionarMotivo(this,'NÃO TEM')">
+      <div class="ball-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+      <div class="ball-info"><div class="ball-count" id="cnt-naotem">0</div><div class="ball-label">Não tem</div></div>
+    </div>
+    <div class="ball ball-numero" data-motivo="NÚMERO" onclick="selecionarMotivo(this,'NÚMERO')">
+      <div class="ball-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M9 7V4h6v3M9 20h6M12 4v16"/></svg></div>
+      <div class="ball-info"><div class="ball-count" id="cnt-numero">0</div><div class="ball-label">Número</div></div>
+    </div>
+  </div>
+
   <div id="cardsWrap" class="loading-wrap">Carregando dados...</div>
 </div>
 
 <script>
-const API_URL      = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
-const GT_USER      = sessionStorage.getItem('gt_user');
-const GT_ROLE      = sessionStorage.getItem('gt_role');
-const GT_LOJA      = sessionStorage.getItem('gt_loja');
+const API_URL  = 'https://script.google.com/macros/s/AKfycbyOSCYWp7Y1nIRRU2cM4Hug1GdWwVrDdUcA9EAjbOwlQnZNY-nehf_BKC82ISSMdFis_A/exec';
+const GT_USER  = sessionStorage.getItem('gt_user');
+const GT_ROLE  = sessionStorage.getItem('gt_role');
+const GT_LOJA  = sessionStorage.getItem('gt_loja');
 
 if (!GT_USER) window.location.href = 'login.html';
 
-document.getElementById('userLabel').textContent = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
+// Aplica tema salvo
+if ((localStorage.getItem('gt_theme') || 'light') === 'dark') document.body.classList.add('dark');
 
-// Se for loja, trava e oculta filtro de loja
+document.getElementById('userLabel').textContent = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
 if (GT_ROLE === 'loja') {
   const wrap = document.getElementById('fLojaWrap');
   if (wrap) wrap.style.display = 'none';
 }
 
 const pad = n => String(n).padStart(2,'0');
-const hoje = new Date();
 const toInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-
-// Padrão: últimos 7 dias
+const hoje = new Date();
 const d7 = new Date(); d7.setDate(d7.getDate() - 7);
 document.getElementById('fDI').value = toInput(d7);
 document.getElementById('fDF').value = toInput(hoje);
 
 let TODOS = [];
+let MOTIVO_SEL = '';
 
 async function init() {
   try {
     const res = await fetch(API_URL + '?acao=dados');
     const data = await res.json();
     if (data.erro) throw new Error(data.erro);
-
-    // Filtra só NÃO com detalhamento
     TODOS = (data.registros || []).filter(r =>
       r.comprou === 'NÃO' && r.detalhe && r.detalhe.trim() !== ''
     );
-
-    filtrar();
+    aplicarFiltros();
   } catch(e) {
     document.getElementById('cardsWrap').innerHTML =
       `<div class="empty"><p>Erro ao carregar dados.<br><small>${e.message}</small></p></div>`;
   }
 }
 
-function filtrar() {
+function filtrarBase() {
   const dI    = document.getElementById('fDI').value;
   const dF    = document.getElementById('fDF').value;
   const loja  = GT_ROLE === 'loja' ? GT_LOJA : document.getElementById('fLoja').value;
-  const motivo = document.getElementById('fMotivo').value;
 
   let lista = TODOS;
-
   if (dI) {
     const [yi,mi,di] = dI.split('-').map(Number);
     const inicio = new Date(yi, mi-1, di);
@@ -201,95 +270,91 @@ function filtrar() {
       return new Date(yy,mm-1,dd) <= fim;
     });
   }
-  if (loja)   lista = lista.filter(r => r.loja === loja);
-  if (motivo) lista = lista.filter(r => r.motivo === motivo);
+  if (loja) lista = lista.filter(r => r.loja === loja);
+  return lista;
+}
 
-  document.getElementById('badgeTotal').textContent =
-    lista.length > 0 ? `${lista.length} registro${lista.length>1?'s':''}` : '';
+function aplicarFiltros() {
+  const base = filtrarBase();
 
+  // Atualiza contadores dos balões
+  const cont = { '':base.length, 'OUTROS':0, 'PREÇO':0, 'NÃO TEM':0, 'NÚMERO':0 };
+  base.forEach(r => { if (cont[r.motivo] !== undefined) cont[r.motivo]++; });
+  document.getElementById('cnt-todos').textContent  = cont[''];
+  document.getElementById('cnt-outros').textContent = cont['OUTROS'];
+  document.getElementById('cnt-preco').textContent  = cont['PREÇO'];
+  document.getElementById('cnt-naotem').textContent = cont['NÃO TEM'];
+  document.getElementById('cnt-numero').textContent = cont['NÚMERO'];
+
+  // Filtra por motivo selecionado
+  let lista = MOTIVO_SEL ? base.filter(r => r.motivo === MOTIVO_SEL) : base;
   renderCards(lista);
 }
 
-function renderCards(lista) {
-  const wrap = document.getElementById('cardsWrap');
+function selecionarMotivo(el, motivo) {
+  MOTIVO_SEL = motivo;
+  document.querySelectorAll('.ball').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  aplicarFiltros();
+}
 
+let LISTA_ATUAL = [];
+function renderCards(lista) {
+  LISTA_ATUAL = lista;
+  const wrap = document.getElementById('cardsWrap');
+  wrap.className = '';
   if (!lista.length) {
-    wrap.innerHTML = `<div class="empty">
+    wrap.innerHTML = `<div class="cards-grid"><div class="empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-      <p>Nenhum registro encontrado<br><small>Tente ajustar os filtros</small></p>
-    </div>`;
+      <p>Nenhum registro encontrado<br><small>Ajuste os filtros ou o período</small></p>
+    </div></div>`;
     return;
   }
+  wrap.innerHTML = '<div class="cards-grid">' + lista.map((r,i) => cardHTML(r,i)).join('') + '</div>';
+}
 
-  wrap.innerHTML = '<div class="cards-grid">' +
-    lista.map((r,i) => cardHTML(r, i)).join('') +
-  '</div>';
+function motivoClass(m) {
+  if (m === 'OUTROS') return 'mt-outros';
+  if (m === 'PREÇO') return 'mt-preco';
+  if (m === 'NÃO TEM') return 'mt-naotem';
+  if (m === 'NÚMERO') return 'mt-numero';
+  return 'mt-outros';
 }
 
 function cardHTML(r, idx) {
   const pill = r.marca === 'Santa Lolla'
-    ? '<span class="pill pill-sl">SL</span>'
-    : '<span class="pill pill-hv">Hav</span>';
-  const motivoTag = r.motivo
-    ? `<span class="motivo-tag">${r.motivo}</span>`
-    : '';
+    ? '<span class="pill pill-sl">Santa Lolla</span>'
+    : '<span class="pill pill-hv">Havaianas</span>';
+  const motivoTag = r.motivo ? `<span class="motivo-tag ${motivoClass(r.motivo)}">${r.motivo}</span>` : '';
   const temTel = r.telefone && r.telefone.trim() !== '';
-  const wppClass = temTel ? '' : 'disabled';
-  const wppTitle = temTel ? '' : 'title="Sem telefone cadastrado"';
 
-  return `<div class="card" id="card-${idx}">
+  return `<div class="card">
     <div class="card-header">
       <div>
         <div class="card-nome">${r.cliente || 'Cliente'}</div>
-        <div class="card-meta">${r.data || ''} · ${r.vendedor || ''} · ${r.loja || ''}</div>
+        <div class="card-meta">${r.data || ''} · ${r.vendedor || ''}<br>${r.loja || ''}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <div style="display:flex;flex-direction:column;align-items:flex-end">
         ${pill}${motivoTag}
       </div>
     </div>
     <div class="card-detalhe">"${r.detalhe}"</div>
     <div class="card-ia" id="ia-${idx}">
-      <div class="ia-label">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14.93V17a1 1 0 00-2 0v-.07A8 8 0 014 12a8 8 0 0116 0 8 8 0 01-7 7.93zM11 9V7a1 1 0 012 0v2a1 1 0 01-2 0z"/></svg>
-        Sugestão IA
-      </div>
+      <div class="ia-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm1 14.93V17a1 1 0 00-2 0v-.07A8 8 0 014 12a8 8 0 0116 0 8 8 0 01-7 7.93zM11 9V7a1 1 0 012 0v2a1 1 0 01-2 0z"/></svg>Sugestão IA</div>
       <div id="ia-txt-${idx}"></div>
     </div>
     <div class="card-footer">
       <button class="btn-ia" id="btn-ia-${idx}" onclick="gerarIA(${idx})">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
         Gerar sugestão IA
       </button>
-      <a class="btn-wpp ${wppClass}" id="btn-wpp-${idx}" ${wppTitle}
-         href="${temTel ? wppLink(r.telefone, '') : '#'}" target="_blank">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        ${temTel ? 'Enviar WhatsApp' : 'Sem telefone'}
+      <a class="btn-wpp ${temTel?'':'disabled'}" id="btn-wpp-${idx}" ${temTel?'':'title="Sem telefone"'}
+         href="${temTel ? wppLink(r.telefone,'') : '#'}" target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        ${temTel ? 'WhatsApp' : 'Sem telefone'}
       </a>
     </div>
   </div>`;
-}
-
-// Guarda dados para acesso por índice
-let LISTA_ATUAL = [];
-const origRender = renderCards;
-window.renderCards = function(lista) {
-  LISTA_ATUAL = lista;
-  origRender(lista);
-};
-// Override
-function renderCards(lista) {
-  LISTA_ATUAL = lista;
-  const wrap = document.getElementById('cardsWrap');
-  if (!lista.length) {
-    wrap.innerHTML = `<div class="empty">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-      <p>Nenhum registro encontrado<br><small>Tente ajustar os filtros</small></p>
-    </div>`;
-    return;
-  }
-  wrap.innerHTML = '<div class="cards-grid">' +
-    lista.map((r,i) => cardHTML(r, i)).join('') +
-  '</div>';
 }
 
 function wppLink(tel, msg) {
@@ -301,8 +366,7 @@ function wppLink(tel, msg) {
 async function gerarIA(idx) {
   const r = LISTA_ATUAL[idx];
   if (!r) return;
-
-  const btn   = document.getElementById(`btn-ia-${idx}`);
+  const btn = document.getElementById(`btn-ia-${idx}`);
   const iaDiv = document.getElementById(`ia-${idx}`);
   const iaTxt = document.getElementById(`ia-txt-${idx}`);
   const wppBtn = document.getElementById(`btn-wpp-${idx}`);
@@ -314,34 +378,24 @@ async function gerarIA(idx) {
     const res = await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({
-        acao: 'gerarMensagemIA',
-        loja: r.loja,
-        marca: r.marca,
-        cliente: r.cliente,
-        motivo: r.motivo,
-        detalhe: r.detalhe
+        acao:'gerarMensagemIA', loja:r.loja, marca:r.marca,
+        cliente:r.cliente, motivo:r.motivo, detalhe:r.detalhe
       })
     });
-
     const data = await res.json();
-
     if (!data.ok) throw new Error(data.erro || 'Erro ao gerar mensagem.');
 
     const msg = data.mensagem;
     iaTxt.textContent = msg;
     iaDiv.classList.add('show');
-
-    // Atualiza botão WhatsApp com a mensagem gerada
     if (r.telefone && r.telefone.trim()) {
       wppBtn.href = wppLink(r.telefone, msg);
       wppBtn.classList.remove('disabled');
     }
-
-    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Regerar`;
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Regerar`;
     btn.disabled = false;
-
   } catch(e) {
-    iaTxt.textContent = 'Erro ao gerar mensagem: ' + e.message;
+    iaTxt.textContent = 'Erro ao gerar: ' + e.message;
     iaDiv.classList.add('show');
     btn.innerHTML = 'Tentar novamente';
     btn.disabled = false;
@@ -349,12 +403,9 @@ async function gerarIA(idx) {
 }
 
 init();
-</script>
-<script>
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
-  });
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
 }
 </script>
 </body>
