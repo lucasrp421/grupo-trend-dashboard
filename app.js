@@ -715,6 +715,73 @@ function initTheme() {
 }
 
 // =============================================
+// ATUALIZAÇÃO DO APP (Service Worker)
+// =============================================
+function buscarAtualizacoes() {
+  const btn = document.getElementById('btnBuscarUpdate');
+  if (btn) {
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M20.49 15a9 9 0 01-14.85 3.36L1 14"/></svg>
+    <span style="font-size:14px">Verificando...</span>`;
+  }
+
+  if (!('serviceWorker' in navigator)) {
+    showUpdateToast('Atualização não suportada neste navegador.', false);
+    resetUpdateBtn();
+    return;
+  }
+
+  navigator.serviceWorker.getRegistration().then(reg => {
+    if (!reg) { showUpdateToast('Service Worker não encontrado.', false); resetUpdateBtn(); return; }
+
+    reg.update().then(() => {
+      if (reg.waiting) {
+        // Há uma versão nova esperando — aplica imediatamente
+        reg.waiting.postMessage('SKIP_WAITING');
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          showUpdateToast('✓ Atualização aplicada! Recarregando...', true);
+          setTimeout(() => location.reload(true), 1200);
+        });
+      } else {
+        showUpdateToast('✓ Você já está na versão mais recente!', true);
+        resetUpdateBtn();
+      }
+    });
+  });
+}
+
+function showUpdateToast(msg, success) {
+  const old = document.getElementById('updateToast');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.id = 'updateToast';
+  toast.style.cssText = `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${success?'#1a2a1a':'#2a1a1a'};border:1px solid ${success?'#3b6d11':'#6d1111'};border-radius:10px;padding:12px 20px;color:${success?'#c0dd97':'#dd9797'};font-size:13px;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+function resetUpdateBtn() {
+  const btn = document.getElementById('btnBuscarUpdate');
+  if (btn) btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+    <span style="font-size:14px">Buscar atualizações</span>`;
+}
+
+// Detecta nova versão disponível automaticamente ao abrir
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          // Nova versão disponível — mostra notificação
+          showUpdateToast('🔄 Nova versão disponível! Toque em "Buscar atualizações".', true);
+        }
+      });
+    });
+  });
+}
+
+// =============================================
 // MODAL — TROCAR SENHA
 // =============================================
 function abrirTrocarSenha(obrigatorio) {
