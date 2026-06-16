@@ -28,11 +28,11 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Estratégia: network-first para API (Apps Script), cache-first para assets estáticos
+// Estratégia: network-first para API, stale-while-revalidate para assets
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Nunca cacheia chamadas à API (Apps Script) — sempre busca dados frescos
+  // API: sempre busca dados frescos
   if (url.includes('script.google.com')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -40,16 +40,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets estáticos: cache-first
+  // Assets: retorna cache imediato + atualiza em background
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        if (response.ok && event.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cached) => {
+        const network = fetch(event.request).then((response) => {
+          if (response.ok && event.request.method === 'GET') {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        }).catch(() => cached);
+        return cached || network;
       });
     }).catch(() => caches.match('./login.html'))
   );
+});
+
+// Mensagem do app para forçar atualização
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data === 'CHECK_UPDATE') {
+    self.registration.update().then(() => {
+      event.source.postMessage('UPDATE_CHECKED');
+    });
+  }
 });
