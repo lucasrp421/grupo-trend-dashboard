@@ -29,6 +29,11 @@
     .error{background:#2a1a1a;border:1px solid #e05c5c44;border-radius:8px;padding:10px 14px;color:#e05c5c;font-size:13px;margin-top:14px;display:none;text-align:center}
     .footer{text-align:center;margin-top:24px;font-size:11px;color:#3a3a55}
   </style>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Grupo Trend"/>
 </head>
 <body>
 <div class="card">
@@ -116,6 +121,13 @@ async function entrar() {
     mostrarErro('Erro de conexão. Tente novamente.');
   }
   setLoading(false);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
 }
 </script>
 </body>
