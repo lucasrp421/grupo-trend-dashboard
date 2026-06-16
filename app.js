@@ -669,36 +669,16 @@ function renderSaudacao() {
 const THEME_KEY = 'gt_theme';
 
 function applyTheme(theme) {
-  const root = document.documentElement;
-  const btn  = document.getElementById('themeBtn');
-  const icon = document.getElementById('themeIcon');
+  const icon  = document.getElementById('themeIcon');
   const label = document.getElementById('themeLabel');
 
   if (theme === 'light') {
-    root.style.setProperty('--bg',      '#f0f0f5');
-    root.style.setProperty('--bg2',     '#ffffff');
-    root.style.setProperty('--bg3',     '#e8e8f0');
-    root.style.setProperty('--border',  '#d0d0e0');
-    root.style.setProperty('--text1',   '#1a1a2e');
-    root.style.setProperty('--text2',   '#4a4a6a');
-    root.style.setProperty('--text3',   '#8888aa');
-    document.body.style.background = '#f0f0f5';
-    document.body.style.color = '#1a1a2e';
-    document.getElementById('sideDrawer') && (document.getElementById('sideDrawer').style.background = '#ffffff');
-    if (icon) icon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+    document.body.classList.add('light');
+    if (icon)  icon.innerHTML  = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
     if (label) label.textContent = 'Modo escuro';
   } else {
-    root.style.setProperty('--bg',      '#0d0d10');
-    root.style.setProperty('--bg2',     '#14141a');
-    root.style.setProperty('--bg3',     '#1c1c26');
-    root.style.setProperty('--border',  '#2a2a35');
-    root.style.setProperty('--text1',   '#eeeef4');
-    root.style.setProperty('--text2',   '#aaaacc');
-    root.style.setProperty('--text3',   '#7070a0');
-    document.body.style.background = '#0d0d10';
-    document.body.style.color = '#eeeef4';
-    document.getElementById('sideDrawer') && (document.getElementById('sideDrawer').style.background = '#14141a');
-    if (icon) icon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+    document.body.classList.remove('light');
+    if (icon)  icon.innerHTML  = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
     if (label) label.textContent = 'Modo claro';
   }
   localStorage.setItem(THEME_KEY, theme);
