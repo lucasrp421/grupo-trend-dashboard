@@ -455,6 +455,10 @@ function renderMotivos(data) {
     const el=$(id); if(!el) return;
     if(!data.length){el.innerHTML='<div class="empty">Nenhum registro</div>';return;}
     const max=data[0].qtd;
+    // Limita altura com scroll interno
+    el.style.maxHeight = '360px';
+    el.style.overflowY = 'auto';
+    el.style.paddingRight = '6px';
     el.innerHTML=data.map(m=>`<div class="motivo-item"><div class="motivo-top"><span>${m.motivo}</span><b>${m.qtd}x</b></div><div class="m-bar-bg"><div class="m-bar-fill" style="width:${Math.round(m.qtd/max*100)}%"></div></div><div class="m-pct">${m.pct}% dos não-comprou</div></div>`).join('');
   });
 }
