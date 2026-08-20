@@ -24,6 +24,8 @@ async function apiPost(body) {
 let REGISTROS_BRUTOS = null; // todos os dados carregados uma vez
 let LISTAS = null;            // lojas, vendedoras, vendedorasPorLoja
 let DADOS = null;             // resultado do filtro atual (para o relatório)
+let META_LOJA = 70;           // meta de conversão da loja (usuário loja)
+let GRUPO_CTX = null;         // { mediaConversao, minhaConversao } para comparação
 let rankTabD = 'todas';
 let rankTabM = 'todas';
 let mOpen = false;
@@ -84,7 +86,11 @@ function hideLoading() {
 // API — chamada única, sem filtros de data
 // =============================================
 async function fetchTodos(forcar) {
-  const url = API_URL + '?acao=dados' + (forcar ? '&refresh=1' : '');
+  let url = API_URL + '?acao=dados' + (forcar ? '&refresh=1' : '');
+  // Loja recebe só os próprios dados (privacidade + performance)
+  if (GT_ROLE === 'loja' && GT_LOJA) {
+    url += '&loja=' + encodeURIComponent(GT_LOJA);
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error('Erro na API: ' + res.status);
   return await res.json();
@@ -344,12 +350,15 @@ function aplicarHoje() {
 // =============================================
 // CARREGAR — chamada única à API
 // =============================================
-const CACHE_LOCAL_KEY = 'gt_dados_cache';
-const CACHE_LOCAL_TS  = 'gt_dados_cache_ts';
+// Cache local por usuário (evita misturar dados admin/loja no mesmo dispositivo)
+const CACHE_LOCAL_KEY = 'gt_dados_cache_' + (GT_USER || 'anon');
+const CACHE_LOCAL_TS  = 'gt_dados_cache_ts_' + (GT_USER || 'anon');
 
 function processarResposta(resposta) {
   REGISTROS_BRUTOS = normalizarRegistros(resposta.registros || []);
   LISTAS = resposta.listas || { lojas:[], vendedoras:[], vendedorasPorLoja:{} };
+  if (resposta.meta !== undefined) META_LOJA = resposta.meta;
+  if (resposta.grupo) GRUPO_CTX = resposta.grupo;
   popularSelects(LISTAS);
 
   ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value=''; });
@@ -442,6 +451,56 @@ async function atualizarDados() {
 // =============================================
 // RENDER DASHBOARD
 // =============================================
+function renderLojaHero(d) {
+  if (GT_ROLE !== 'loja') return;
+
+  // Mostra os cards da loja
+  const heroD = document.getElementById('lojaHeroD');
+  const heroM = document.getElementById('lojaHeroM');
+  if (heroD) heroD.style.display = 'grid';
+  if (heroM) heroM.style.display = 'block';
+
+  const conv = d.kpis.conv;
+  const meta = META_LOJA;
+  const mediaGrupo = GRUPO_CTX ? GRUPO_CTX.mediaConversao : 0;
+
+  // Conversão + barra de meta
+  const pctMeta = Math.min(100, meta > 0 ? (conv/meta*100) : 0);
+  const goalPos = Math.min(100, meta); // posição do marcador de meta (meta em % absoluto)
+
+  [['lhConvD','lhFillD','lhGoalD','lhMetaD'],['lhConvM','lhFillM','lhGoalM','lhMetaM']].forEach(([cv,fill,goal,mt])=>{
+    const cvE=$(cv),fE=$(fill),gE=$(goal),mE=$(mt);
+    if(cvE) cvE.textContent = conv+'%';
+    if(fE) fE.style.width = Math.min(100,conv)+'%';
+    if(gE) gE.style.left = goalPos+'%';
+    if(mE) mE.textContent = meta+'%';
+  });
+
+  // Comparação com grupo
+  const diff = +(conv - mediaGrupo).toFixed(1);
+  const diffTxt = diff > 0 ? `+${diff}%` : `${diff}%`;
+  const diffClass = diff > 0 ? 'up' : (diff < 0 ? 'down' : '');
+
+  ['lhGrupoD','lhGrupoM'].forEach(id=>{const e=$(id);if(e)e.textContent=mediaGrupo+'%';});
+  const dD=$('lhDiffD'), dM=$('lhDiffM');
+  if(dD){dD.textContent=diff>0?`${diffTxt} acima`:(diff<0?`${diffTxt} abaixo`:'na média');dD.className='lhc-val '+diffClass;}
+  if(dM){dM.textContent=diff>0?`▲ ${diffTxt}`:(diff<0?`▼ ${diffTxt}`:'na média');dM.className='lhc-diff '+diffClass;}
+
+  // Follow-ups pendentes (NÃO com detalhamento)
+  const followCount = REGISTROS_BRUTOS.filter(r =>
+    r.comprou === 'NÃO' && r.detalhe && r.detalhe.trim() !== ''
+  ).length;
+  ['lhFollowCountD','lhFollowCountM'].forEach(id=>{const e=$(id);if(e)e.textContent=followCount;});
+}
+
+function ocultarElementosLoja() {
+  if (GT_ROLE !== 'loja') return;
+  // Esconde split de marcas (loja é de uma marca só) e desempenho por loja
+  ['dkSLcard','dkHVcard','mkSLcard','mkHVcard'].forEach(id=>{
+    const e=$(id); if(e) e.style.display='none';
+  });
+}
+
 function renderDash(d) {
   const k=d.kpis;
   [['dkT','mkT',k.total],['dkS','mkS',k.sim],['dkN','mkN',k.nao],['dkC','mkC',k.conv+'%']].forEach(([di,mi,v])=>{
@@ -453,6 +512,7 @@ function renderDash(d) {
   ['dkSLs','mkSLs'].forEach(id=>{const e=$(id);if(e)e.textContent=sl.total+' atend.';});
   ['dkHV','mkHV'].forEach(id=>{const e=$(id);if(e)e.textContent=hv.conv+'%';});
   ['dkHVs','mkHVs'].forEach(id=>{const e=$(id);if(e)e.textContent=hv.total+' atend.';});
+  renderLojaHero(d);
   renderLojas(d.porLoja); renderMotivos(d.motivos);
   renderRanking(d.ranking,rankTabD,'d'); renderRanking(d.ranking,rankTabM,'m');
   renderHora(d.porHora); renderMarca(d.porMarca); renderSerie(d.serie);
@@ -604,6 +664,7 @@ window.addEventListener('load', () => {
   initLayout();
   carregar();
   injetarUI();
+  ocultarElementosLoja();
   renderSaudacao();
   if (GT_PRIMEIRO_ACESSO && GT_ROLE === 'loja') {
     setTimeout(() => abrirTrocarSenha(true), 800);
@@ -635,8 +696,67 @@ function injetarUI() {
         btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Usuários</span>';
         actionsSection.parentNode.insertBefore(btn, actionsSection.nextSibling.nextSibling.nextSibling);
       }
+      // Botão Metas
+      if (actionsSection && !document.getElementById('sbMetasBtn')) {
+        const btnM = document.createElement('button');
+        btnM.id = 'sbMetasBtn';
+        btnM.className = 'd-sb-item';
+        btnM.onclick = abrirPainelMetas;
+        btnM.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Metas</span>';
+        const usuariosBtn = document.getElementById('sbUsuariosBtn');
+        if (usuariosBtn) usuariosBtn.parentNode.insertBefore(btnM, usuariosBtn.nextSibling);
+      }
     }
   }
+}
+
+// =============================================
+// PAINEL METAS (admin)
+// =============================================
+async function abrirPainelMetas() {
+  const overlay = document.createElement('div');
+  overlay.id = 'modalMetas';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:520px;box-shadow:var(--shadow-lg)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:17px;font-weight:700;color:var(--text)">🎯 Metas de conversão por loja</div>
+        <button onclick="document.getElementById('modalMetas').remove()" style="background:transparent;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:0 4px">×</button>
+      </div>
+      <div id="metasLista" style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Carregando...</div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  try {
+    const res = await apiPost({ acao:'listarMetas', role:'admin' });
+    if (!res.ok) { document.getElementById('metasLista').textContent = res.erro; return; }
+
+    const html = res.metas.map(m => `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+        <div style="flex:1;font-size:13px;font-weight:500;color:var(--text)">${m.loja}</div>
+        <input type="number" min="0" max="100" value="${m.meta}" id="meta-${m.loja.replace(/\s/g,'_')}"
+          style="width:70px;height:36px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;text-align:center;outline:none"/>
+        <span style="font-size:13px;color:var(--text3)">%</span>
+        <button onclick="salvarMetaLoja('${m.loja}')" style="height:36px;padding:0 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Salvar</button>
+      </div>`).join('');
+    document.getElementById('metasLista').innerHTML = html;
+  } catch(e) {
+    document.getElementById('metasLista').textContent = 'Erro ao carregar metas.';
+  }
+}
+
+async function salvarMetaLoja(loja) {
+  const input = document.getElementById('meta-' + loja.replace(/\s/g,'_'));
+  const meta = input.value;
+  try {
+    const res = await apiPost({ acao:'salvarMeta', role:'admin', loja, meta });
+    if (res.ok) {
+      input.style.borderColor = 'var(--green)';
+      setTimeout(()=>{ input.style.borderColor='var(--border2)'; }, 1500);
+    } else {
+      alert(res.erro || 'Erro ao salvar.');
+    }
+  } catch(e) { alert('Erro de conexão.'); }
 }
 
 function logout() {
