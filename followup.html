@@ -49,6 +49,8 @@
     .logo-sub{font-size:11px;color:rgba(255,255,255,.7)}
     .topbar-right{display:flex;align-items:center;gap:10px}
     .user-label{font-size:12px;color:rgba(255,255,255,.85)}
+    .btn-modo{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;border:none;font-size:13px;cursor:pointer;font-weight:500;transition:background .15s}
+    .btn-modo:hover{background:rgba(255,255,255,.22)}
     .btn-back{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;border:none;font-size:13px;cursor:pointer;text-decoration:none;font-weight:500;transition:background .15s}
     .btn-back:hover{background:rgba(255,255,255,.2)}
 
@@ -146,10 +148,14 @@
   </div>
   <div class="topbar-right">
     <span class="user-label" id="userLabel"></span>
-    <a href="index.html" class="btn-back">
+    <button class="btn-modo" id="btnModoVendedor" onclick="ativarModoVendedor()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span>Modo vendedor</span>
+    </button>
+    <button class="btn-back" id="btnDashboard" onclick="voltarDashboard()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       <span>Dashboard</span>
-    </a>
+    </button>
   </div>
 </div>
 
@@ -221,6 +227,109 @@ if (!GT_USER) window.location.href = 'login.html';
 if ((localStorage.getItem('gt_theme') || 'light') === 'dark') document.body.classList.add('dark');
 
 document.getElementById('userLabel').textContent = GT_ROLE === 'admin' ? 'Administrador' : GT_LOJA;
+
+// =============================================
+// MODO VENDEDOR — trava a saída do Follow-Up
+// =============================================
+const MODO_VENDEDOR_KEY = 'gt_modo_vendedor';
+
+function checarModoVendedor() {
+  const ativo = sessionStorage.getItem(MODO_VENDEDOR_KEY) === 'sim';
+  const btnModo = document.getElementById('btnModoVendedor');
+  // No modo vendedor, esconde o próprio botão de ativar (já está ativo)
+  if (btnModo) btnModo.style.display = ativo ? 'none' : 'inline-flex';
+  return ativo;
+}
+
+function ativarModoVendedor() {
+  if (!confirm('Ativar Modo Vendedor?\n\nO acesso ao Dashboard ficará bloqueado até digitar a senha da loja. Use isso ao deixar um vendedor usando o Follow-Up.')) return;
+  sessionStorage.setItem(MODO_VENDEDOR_KEY, 'sim');
+  checarModoVendedor();
+  mostrarToast('🔒 Modo Vendedor ativado. Dashboard bloqueado.', true);
+}
+
+function voltarDashboard() {
+  // Se modo vendedor ativo, exige senha da loja
+  if (checarModoVendedor()) {
+    abrirModalSenhaDashboard();
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+function abrirModalSenhaDashboard() {
+  const overlay = document.createElement('div');
+  overlay.id = 'modalSenhaDash';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.3)">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--primary-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">Acesso ao Dashboard</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Digite a senha da loja para continuar</div>
+      </div>
+      <input type="password" id="senhaDashInput" placeholder="Senha da loja" onkeydown="if(event.key==='Enter')confirmarSenhaDashboard()"
+        style="width:100%;height:44px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:14px;padding:0 14px;outline:none;margin-bottom:12px;text-align:center"/>
+      <div id="senhaDashErro" style="background:var(--red-dim);border-radius:8px;padding:8px 12px;color:var(--red);font-size:12px;margin-bottom:12px;display:none;text-align:center"></div>
+      <button onclick="confirmarSenhaDashboard()" id="btnConfirmarSenha" style="width:100%;height:44px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px">Desbloquear</button>
+      <button onclick="document.getElementById('modalSenhaDash').remove()" style="width:100%;height:40px;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">Cancelar</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('senhaDashInput')?.focus(), 100);
+}
+
+async function confirmarSenhaDashboard() {
+  const senha = document.getElementById('senhaDashInput').value.trim();
+  const erroEl = document.getElementById('senhaDashErro');
+  const btn = document.getElementById('btnConfirmarSenha');
+  erroEl.style.display = 'none';
+
+  if (!senha) { erroEl.textContent = 'Digite a senha.'; erroEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    // Valida a senha da loja no backend (mesmo login)
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ acao: 'login', usuario: GT_USER, senha })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      // Senha correta — desativa modo vendedor e libera
+      sessionStorage.removeItem(MODO_VENDEDOR_KEY);
+      window.location.href = 'index.html';
+    } else {
+      erroEl.textContent = 'Senha incorreta.';
+      erroEl.style.display = 'block';
+      document.getElementById('senhaDashInput').value = '';
+      btn.disabled = false;
+      btn.textContent = 'Desbloquear';
+    }
+  } catch(e) {
+    erroEl.textContent = 'Erro de conexão.';
+    erroEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Desbloquear';
+  }
+}
+
+function mostrarToast(msg, success) {
+  const old = document.getElementById('fuToast');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.id = 'fuToast';
+  toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${success?'var(--primary)':'var(--red)'};color:#fff;border-radius:10px;padding:12px 20px;font-size:13px;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 3000);
+}
+
+checarModoVendedor();
 if (GT_ROLE === 'loja') {
   const wrap = document.getElementById('fLojaWrap');
   if (wrap) wrap.style.display = 'none';
