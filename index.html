@@ -9,7 +9,11 @@
   <meta name="theme-color" content="#0d4f4a"/>
   <title>Grupo Trend — Dashboard</title>
   <link rel="stylesheet" href="style.css"/>
-  <script>if(!sessionStorage.getItem('gt_user'))window.location.href='login.html';</script>
+  <script>
+    if(!sessionStorage.getItem('gt_user'))window.location.href='login.html';
+    // Modo vendedor ativo: bloqueia acesso ao dashboard, volta ao follow-up
+    if(sessionStorage.getItem('gt_modo_vendedor')==='sim')window.location.href='followup.html';
+  </script>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -112,13 +116,40 @@
       <div class="d-chips" id="dChips"></div>
     </div>
 
+    <!-- CARD DA LOJA (só usuário loja) -->
+    <div id="lojaHeroD" class="loja-hero" style="display:none">
+      <div class="loja-hero-meta">
+        <div class="loja-hero-label">Sua conversão no período</div>
+        <div class="loja-hero-val" id="lhConvD">0%</div>
+        <div class="loja-hero-bar-wrap">
+          <div class="loja-hero-bar"><div class="loja-hero-fill" id="lhFillD"></div><div class="loja-hero-goal" id="lhGoalD"></div></div>
+          <div class="loja-hero-meta-txt">Meta: <b id="lhMetaD">70%</b></div>
+        </div>
+      </div>
+      <div class="loja-hero-compare">
+        <div class="loja-hero-compare-item">
+          <div class="lhc-label">Média do grupo</div>
+          <div class="lhc-val" id="lhGrupoD">0%</div>
+        </div>
+        <div class="loja-hero-compare-item" id="lhDiffWrapD">
+          <div class="lhc-label">Você está</div>
+          <div class="lhc-val" id="lhDiffD">—</div>
+        </div>
+      </div>
+      <a href="followup.html" class="loja-hero-followup" id="lhFollowD">
+        <div class="lhf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.5 9.72 19.79 19.79 0 01.46 1.1 2 2 0 012.42.12h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.09 6.09l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+        <div class="lhf-info"><div class="lhf-count" id="lhFollowCountD">0</div><div class="lhf-label">clientes para recontatar</div></div>
+        <svg class="lhf-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+    </div>
+
     <div class="d-kpis">
       <div class="d-kpi blue"><div class="d-kpi-label">Atendimentos</div><div class="d-kpi-val" id="dkT">—</div><div class="d-kpi-sub">total</div></div>
       <div class="d-kpi green"><div class="d-kpi-label">Compraram</div><div class="d-kpi-val" id="dkS">—</div><div class="d-kpi-sub">SIM</div></div>
       <div class="d-kpi red"><div class="d-kpi-label">Não compraram</div><div class="d-kpi-val" id="dkN">—</div><div class="d-kpi-sub">NÃO</div></div>
       <div class="d-kpi amber"><div class="d-kpi-label">Conversão</div><div class="d-kpi-val" id="dkC">—</div><div class="d-kpi-sub">taxa geral</div></div>
-      <div class="d-kpi purple"><div class="d-kpi-label">Santa Lolla</div><div class="d-kpi-val" id="dkSL">—</div><div class="d-kpi-sub" id="dkSLs">—</div></div>
-      <div class="d-kpi teal"><div class="d-kpi-label">Havaianas</div><div class="d-kpi-val" id="dkHV">—</div><div class="d-kpi-sub" id="dkHVs">—</div></div>
+      <div class="d-kpi purple" id="dkSLcard"><div class="d-kpi-label">Santa Lolla</div><div class="d-kpi-val" id="dkSL">—</div><div class="d-kpi-sub" id="dkSLs">—</div></div>
+      <div class="d-kpi teal" id="dkHVcard"><div class="d-kpi-label">Havaianas</div><div class="d-kpi-val" id="dkHV">—</div><div class="d-kpi-sub" id="dkHVs">—</div></div>
     </div>
 
     <div class="d-grid2">
@@ -265,16 +296,37 @@
     <div class="m-scroll">
       <!-- RESUMO -->
       <div class="m-page active" id="pg-resumo">
+        <!-- CARD DA LOJA (só usuário loja) -->
+        <div id="lojaHeroM" class="loja-hero-m" style="display:none">
+          <div class="loja-hero-m-top">
+            <div>
+              <div class="loja-hero-label">Sua conversão</div>
+              <div class="loja-hero-val" id="lhConvM">0%</div>
+            </div>
+            <div class="loja-hero-m-grupo">
+              <div class="lhc-label">Média grupo</div>
+              <div class="lhc-val" id="lhGrupoM">0%</div>
+              <div class="lhc-diff" id="lhDiffM">—</div>
+            </div>
+          </div>
+          <div class="loja-hero-bar"><div class="loja-hero-fill" id="lhFillM"></div><div class="loja-hero-goal" id="lhGoalM"></div></div>
+          <div class="loja-hero-meta-txt">Meta: <b id="lhMetaM">70%</b></div>
+          <a href="followup.html" class="loja-hero-followup" id="lhFollowM">
+            <div class="lhf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.5 9.72 19.79 19.79 0 01.46 1.1 2 2 0 012.42.12h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.09 6.09l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+            <div class="lhf-info"><div class="lhf-count" id="lhFollowCountM">0</div><div class="lhf-label">clientes para recontatar</div></div>
+            <svg class="lhf-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
         <div class="m-kpi-grid">
           <div class="m-kpi blue"><div class="m-kpi-label">Atendimentos</div><div class="m-kpi-val" id="mkT">—</div><div class="m-kpi-sub">total</div></div>
           <div class="m-kpi amber"><div class="m-kpi-label">Conversão</div><div class="m-kpi-val" id="mkC">—</div><div class="m-kpi-sub">taxa geral</div></div>
           <div class="m-kpi green"><div class="m-kpi-label">Compraram</div><div class="m-kpi-val" id="mkS">—</div><div class="m-kpi-sub">SIM</div></div>
           <div class="m-kpi red"><div class="m-kpi-label">Não compraram</div><div class="m-kpi-val" id="mkN">—</div><div class="m-kpi-sub">NÃO</div></div>
-          <div class="m-kpi purple m-kpi-wide">
+          <div class="m-kpi purple m-kpi-wide" id="mkSLcard">
             <div class="m-kpi-label">Santa Lolla</div>
             <div class="m-kpi-wide-inner"><div class="m-kpi-val" id="mkSL">—</div><div class="m-kpi-wide-sub" id="mkSLs">—</div></div>
           </div>
-          <div class="m-kpi teal m-kpi-wide">
+          <div class="m-kpi teal m-kpi-wide" id="mkHVcard">
             <div class="m-kpi-label">Havaianas</div>
             <div class="m-kpi-wide-inner"><div class="m-kpi-val" id="mkHV">—</div><div class="m-kpi-wide-sub" id="mkHVs">—</div></div>
           </div>
