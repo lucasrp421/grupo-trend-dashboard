@@ -551,3 +551,66 @@ html,body{
 #dMList::-webkit-scrollbar-track,#mMList::-webkit-scrollbar-track{background:var(--bg3);border-radius:3px}
 #dMList::-webkit-scrollbar-thumb,#mMList::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 #dMList::-webkit-scrollbar-thumb:hover,#mMList::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* =============================================
+   CARD DA LOJA (hero) — desktop e mobile
+   ============================================= */
+.loja-hero{
+  display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:16px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:var(--gap);
+  box-shadow:var(--shadow);
+}
+.loja-hero-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:6px}
+.loja-hero-val{font-size:38px;font-weight:800;color:var(--primary);line-height:1;letter-spacing:-1px}
+.loja-hero-bar-wrap{margin-top:14px}
+.loja-hero-bar{position:relative;height:10px;background:var(--bg4);border-radius:6px;overflow:visible;margin-bottom:8px}
+.loja-hero-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--primary),var(--teal));transition:width .5s ease}
+.loja-hero-goal{position:absolute;top:-3px;width:3px;height:16px;background:var(--text);border-radius:2px;opacity:.5}
+.loja-hero-meta-txt{font-size:12px;color:var(--text3)}
+.loja-hero-meta-txt b{color:var(--text)}
+
+.loja-hero-compare{display:flex;flex-direction:column;justify-content:center;gap:14px;border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 16px}
+.loja-hero-compare-item{text-align:center}
+.lhc-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.lhc-val{font-size:22px;font-weight:700;color:var(--text)}
+.lhc-val.up{color:var(--green)}
+.lhc-val.down{color:var(--red)}
+
+.loja-hero-followup{
+  display:flex;align-items:center;gap:12px;
+  background:var(--primary-dim);border:1px solid var(--primary-mid);
+  border-radius:12px;padding:16px;text-decoration:none;
+  transition:all .18s;cursor:pointer;
+}
+.loja-hero-followup:hover{background:var(--primary);transform:translateY(-2px)}
+.loja-hero-followup:hover *{color:#fff !important}
+.lhf-icon{width:44px;height:44px;border-radius:11px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lhf-icon svg{width:22px;height:22px;stroke:#fff}
+.lhf-info{flex:1}
+.lhf-count{font-size:26px;font-weight:800;color:var(--primary);line-height:1}
+.lhf-label{font-size:12px;color:var(--text2);margin-top:2px}
+.lhf-arrow{width:20px;height:20px;stroke:var(--primary);flex-shrink:0}
+
+/* Mobile */
+.loja-hero-m{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px;margin-bottom:var(--gap);
+  box-shadow:var(--shadow);
+}
+.loja-hero-m-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.loja-hero-m .loja-hero-val{font-size:34px}
+.loja-hero-m-grupo{text-align:right}
+.loja-hero-m-grupo .lhc-val{font-size:18px}
+.lhc-diff{font-size:12px;font-weight:600;margin-top:2px}
+.lhc-diff.up{color:var(--green)}
+.lhc-diff.down{color:var(--red)}
+.loja-hero-m .loja-hero-bar{margin-bottom:8px}
+.loja-hero-m .loja-hero-followup{margin-top:16px}
+.loja-hero-m .lhf-count{font-size:22px}
+
+@media(max-width:900px){
+  .loja-hero{grid-template-columns:1fr;gap:14px}
+  .loja-hero-compare{flex-direction:row;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0}
+  .loja-hero-compare-item{flex:1}
+}
