@@ -128,10 +128,12 @@ function filtrarLocalmente(filtros) {
     return true;
   });
 
-  const total = filtrados.length;
   const sim   = filtrados.filter(r => r.comprou === 'SIM').length;
   const nao   = filtrados.filter(r => r.comprou === 'NÃO').length;
-  const kpis  = { total, sim, nao, conv: total > 0 ? +((sim/total)*100).toFixed(1) : 0 };
+  const classificados = sim + nao;              // só quem tem SIM ou NÃO válido
+  const total = classificados;                  // atendimentos = SIM + NÃO (ignora linhas vazias/inválidas)
+  // Conversão = SIM / (SIM + NÃO)
+  const kpis  = { total, sim, nao, conv: classificados > 0 ? +((sim/classificados)*100).toFixed(1) : 0 };
 
   // Por loja
   const LOJAS_NOMES = LISTAS.lojas;
@@ -140,8 +142,9 @@ function filtrarLocalmente(filtros) {
     const reg   = filtrados.filter(r => r.loja === nome);
     const lSim  = reg.filter(r => r.comprou === 'SIM').length;
     const lNao  = reg.filter(r => r.comprou === 'NÃO').length;
-    return { nome, marca, total: reg.length, sim: lSim, nao: lNao,
-      conv: reg.length > 0 ? +((lSim/reg.length)*100).toFixed(1) : 0,
+    const lClass = lSim + lNao;
+    return { nome, marca, total: lClass, sim: lSim, nao: lNao,
+      conv: lClass > 0 ? +((lSim/lClass)*100).toFixed(1) : 0,
       semDados: reg.length === 0 };
   });
 
@@ -150,21 +153,24 @@ function filtrarLocalmente(filtros) {
     const reg  = filtrados.filter(r => r.marca === marca);
     const mSim = reg.filter(r => r.comprou === 'SIM').length;
     const mNao = reg.filter(r => r.comprou === 'NÃO').length;
-    return { marca, total: reg.length, sim: mSim, nao: mNao,
-      conv: reg.length > 0 ? +((mSim/reg.length)*100).toFixed(1) : 0 };
+    const mClass = mSim + mNao;
+    return { marca, total: mClass, sim: mSim, nao: mNao,
+      conv: mClass > 0 ? +((mSim/mClass)*100).toFixed(1) : 0 };
   });
 
   // Ranking vendedoras
   const vendMap = {};
   filtrados.forEach(r => {
     const v = r.vendedor; if (!v) return;
-    if (!vendMap[v]) vendMap[v] = { nome:v, loja:r.loja, marca:r.marca, total:0, sim:0, nao:0 };
-    vendMap[v].total++;
+    if (!vendMap[v]) vendMap[v] = { nome:v, loja:r.loja, marca:r.marca, sim:0, nao:0 };
     if (r.comprou === 'SIM') vendMap[v].sim++;
-    if (r.comprou === 'NÃO') vendMap[v].nao++;
+    else if (r.comprou === 'NÃO') vendMap[v].nao++;
   });
   const ranking = Object.values(vendMap)
-    .map(v => ({ ...v, conv: v.total > 0 ? +((v.sim/v.total)*100).toFixed(1) : 0 }))
+    .map(v => {
+      const classif = v.sim + v.nao;
+      return { ...v, total: classif, conv: classif > 0 ? +((v.sim/classif)*100).toFixed(1) : 0 };
+    })
     .sort((a,b) => b.sim - a.sim);
 
   // Motivos
@@ -242,7 +248,16 @@ function normalizarRegistros(registros) {
       if (isNaN(_hora)) _hora = null;
     }
 
-    return { ...r, _date, _hora, _dayStr };
+    // Normaliza COMPROU: remove espaços, força maiúsculas, corrige acentos
+    let comprouNorm = '';
+    if (r.comprou !== null && r.comprou !== undefined) {
+      const c = String(r.comprou).trim().toUpperCase();
+      if (c === 'SIM' || c === 'S') comprouNorm = 'SIM';
+      else if (c === 'NÃO' || c === 'NAO' || c === 'N') comprouNorm = 'NÃO';
+      // qualquer outro valor (vazio, lixo) fica '' e não entra na conversão
+    }
+
+    return { ...r, comprou: comprouNorm, _date, _hora, _dayStr };
   });
 }
 
