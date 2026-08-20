@@ -544,3 +544,10 @@ html,body{
 /* Saudação no topo */
 .d-top-greeting{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.4px}
 .d-top-date{font-size:13px;color:var(--text3);margin-top:2px}
+
+/* Scroll dos motivos */
+#dMList,#mMList{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+#dMList::-webkit-scrollbar,#mMList::-webkit-scrollbar{width:5px}
+#dMList::-webkit-scrollbar-track,#mMList::-webkit-scrollbar-track{background:var(--bg3);border-radius:3px}
+#dMList::-webkit-scrollbar-thumb,#mMList::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+#dMList::-webkit-scrollbar-thumb:hover,#mMList::-webkit-scrollbar-thumb:hover{background:var(--text3)}
