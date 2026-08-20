@@ -83,8 +83,9 @@ function hideLoading() {
 // =============================================
 // API — chamada única, sem filtros de data
 // =============================================
-async function fetchTodos() {
-  const res = await fetch(API_URL + '?acao=dados');
+async function fetchTodos(forcar) {
+  const url = API_URL + '?acao=dados' + (forcar ? '&refresh=1' : '');
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Erro na API: ' + res.status);
   return await res.json();
 }
@@ -343,41 +344,70 @@ function aplicarHoje() {
 // =============================================
 // CARREGAR — chamada única à API
 // =============================================
+const CACHE_LOCAL_KEY = 'gt_dados_cache';
+const CACHE_LOCAL_TS  = 'gt_dados_cache_ts';
+
+function processarResposta(resposta) {
+  REGISTROS_BRUTOS = normalizarRegistros(resposta.registros || []);
+  LISTAS = resposta.listas || { lojas:[], vendedoras:[], vendedorasPorLoja:{} };
+  popularSelects(LISTAS);
+
+  ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value=''; });
+  ['dMarca','mMarca','dLoja','mLoja','dVend','mVend'].forEach(id => { const e=$(id); if(e) e.value=''; });
+  const chips = $('dChips'); if(chips) chips.innerHTML='';
+  renderMChips({});
+
+  if (GT_ROLE === 'loja') {
+    ['dLoja','mLoja'].forEach(id => {
+      const e = $(id); if (!e) return;
+      e.value = GT_LOJA; e.disabled = true;
+    });
+    ['dMarca','mMarca'].forEach(id => {
+      const e = $(id); if (!e) return;
+      e.disabled = true;
+    });
+  }
+
+  aplicarHoje();
+  setStatus(resposta.atualizadoEm || new Date().toLocaleString('pt-BR'), false);
+}
+
 async function carregar() {
-  setStatus('carregando...', true);
+  // 1. Tenta mostrar cache local primeiro (instantâneo)
+  let temCache = false;
+  try {
+    const cacheStr = localStorage.getItem(CACHE_LOCAL_KEY);
+    if (cacheStr) {
+      const cache = JSON.parse(cacheStr);
+      if (cache && cache.registros) {
+        processarResposta(cache);
+        temCache = true;
+        const ts = localStorage.getItem(CACHE_LOCAL_TS);
+        setStatus('atualizando...', true);
+        hideLoading();
+      }
+    }
+  } catch(e) { /* cache inválido, ignora */ }
+
+  if (!temCache) setStatus('carregando...', true);
+
+  // 2. Busca dados frescos da API (em background se já tinha cache)
   try {
     const resposta = await fetchTodos();
-
     if (resposta.erro) throw new Error(resposta.erro);
 
-    REGISTROS_BRUTOS = normalizarRegistros(resposta.registros || []);
-    LISTAS = resposta.listas || { lojas:[], vendedoras:[], vendedorasPorLoja:{} };
-    popularSelects(LISTAS);
+    processarResposta(resposta);
 
-    // Reseta filtros
-    ['dDI','dDF','mDI','mDF'].forEach(id => { const e=$(id); if(e) e.value=''; });
-    ['dMarca','mMarca','dLoja','mLoja','dVend','mVend'].forEach(id => { const e=$(id); if(e) e.value=''; });
-    const chips = $('dChips'); if(chips) chips.innerHTML='';
-    renderMChips({});
+    // Salva no cache local
+    try {
+      localStorage.setItem(CACHE_LOCAL_KEY, JSON.stringify(resposta));
+      localStorage.setItem(CACHE_LOCAL_TS, Date.now().toString());
+    } catch(e) { /* localStorage cheio, ignora */ }
 
-    // Se for loja, trava filtro
-    if (GT_ROLE === 'loja') {
-      ['dLoja','mLoja'].forEach(id => {
-        const e = $(id); if (!e) return;
-        e.value = GT_LOJA;
-        e.disabled = true;
-      });
-      ['dMarca','mMarca'].forEach(id => {
-        const e = $(id); if (!e) return;
-        e.disabled = true;
-      });
-    }
-
-    aplicarHoje();
-    setStatus(resposta.atualizadoEm || new Date().toLocaleString('pt-BR'), false);
   } catch(e) {
     console.error('Erro ao carregar:', e);
-    setStatus('erro ao carregar — ' + e.message, false);
+    if (!temCache) setStatus('erro ao carregar — ' + e.message, false);
+    else setStatus('offline — dados em cache', false);
   } finally {
     hideLoading();
   }
@@ -387,9 +417,16 @@ async function carregar() {
 async function atualizarDados() {
   setStatus('atualizando...', true);
   try {
-    const resposta = await fetchTodos();
+    const resposta = await fetchTodos(true); // força dados frescos
     REGISTROS_BRUTOS = normalizarRegistros(resposta.registros || []);
     LISTAS = resposta.listas;
+
+    // Atualiza cache local
+    try {
+      localStorage.setItem(CACHE_LOCAL_KEY, JSON.stringify(resposta));
+      localStorage.setItem(CACHE_LOCAL_TS, Date.now().toString());
+    } catch(e) {}
+
     // Reaplicar filtros atuais
     const isMobile = window.innerWidth < 768;
     const pre = isMobile ? 'm' : 'd';
