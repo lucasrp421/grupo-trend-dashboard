@@ -1,7 +1,7 @@
 // =============================================
 // CONFIGURAÇÃO
 // =============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbypr9Y4SbihIJjoQXlQ6iqIiN47_an4iZEqF5t9nI5FSNUaxVcXYKBsh3pwYsHVvwh6Xg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwjmJzYCZwya96993SBIprhJ0K53ryxP2F_DAg5QwrrvySHQhhmdENus-mateE71Z0gBw/exec";
 
 // =============================================
 // AUTH — verificação de sessão
