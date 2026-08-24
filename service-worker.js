@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grupotrend-v10';
+const CACHE_NAME = 'grupotrend-v11';
 const ASSETS = [
   './login.html',
   './index.html',
